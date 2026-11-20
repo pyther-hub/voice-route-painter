@@ -1,0 +1,13 @@
+.venv
+.git
+.env
+raw_data
+pipeline-explorer
+eng-experiments
+evals/results
+tests
+__pycache__
+.pytest_cache
+traces.db
+*.ipynb
+.DS_Store

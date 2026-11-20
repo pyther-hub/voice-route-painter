@@ -1,0 +1,295 @@
+# Batch 3: replace a stop, move a stop, compound edits, long messages.
+
+@ replace, compound, hinglish, alias
+S lucknow varanasi gaya
+T Banaras ki jagah Prayagraj kar do
+O rm varanasi; add prayagraj after lucknow
+M Banaras=varanasi; Prayagraj=prayagraj
+
+@ replace, compound, english
+S delhi agra jaipur
+T Swap Agra for Mathura
+O rm agra; add mathura after delhi
+M Agra=agra; Mathura=mathura
+
+@ replace, compound, hinglish
+S mumbai pune panaji
+T Pune nahi, uski jagah Lonavala
+O rm pune; add lonavala after mumbai
+M Pune=pune; Lonavala=lonavala
+
+@ replace, compound, english, typo
+S hyderabad vijayawada chennai
+T Replace Vijaywada with Tirupati
+O rm vijayawada; add tirupati after hyderabad
+M Vijaywada=vijayawada; Tirupati=tirupati
+
+@ replace, compound, hinglish, tourist
+S chandigarh shimla manali
+T Shimla ke badle Kasol daal do
+O rm shimla; add kasol after chandigarh
+M Shimla=shimla; Kasol=kasol
+
+@ replace, compound, english, alias, many-stops
+S chennai puducherry thanjavur madurai rameswaram
+T Instead of Pondy let's do Mahabalipuram's neighbour Kanchipuram
+O rm puducherry; add kanchipuram after chennai
+M Pondy=puducherry; Mahabalipuram=mahabalipuram; Kanchipuram=kanchipuram
+
+@ move, compound, hinglish
+S delhi jaipur agra lucknow
+T Jaipur ko end mein le jao
+O rm jaipur; add jaipur end
+M Jaipur=jaipur
+
+@ move, compound, english
+S mumbai nashik pune aurangabad
+T Move Pune to right after Mumbai
+O rm pune; add pune after mumbai
+M Pune=pune; Mumbai=mumbai
+
+@ move, compound, hinglish, position
+S kolkata puri bhubaneswar konark
+T Bhubaneswar ko Puri se pehle karo
+O rm bhubaneswar; add bhubaneswar before puri
+M Bhubaneswar=bhubaneswar; Puri=puri
+
+@ move, compound, english, many-stops
+S jaipur pushkar jodhpur jaisalmer udaipur ajmer
+T Ajmer should be second, right after Jaipur
+O rm ajmer; add ajmer after jaipur
+M Ajmer=ajmer; Jaipur=jaipur
+
+@ move, compound, hinglish, typo
+S bengaluru ooty mysuru madikeri
+T Mysor ko Ooty se pehle le aao
+O rm mysuru; add mysuru before ooty
+M Mysor=mysuru; Ooty=ooty
+
+@ replace, compound, english, long
+S delhi rishikesh mussoorie
+T Honestly Mussoorie gets way too crowded on weekends and we went there last year too, so can we replace it with Nainital instead, the kids have never seen the lake
+O rm mussoorie; add nainital after rishikesh
+M Mussoorie=mussoorie; Nainital=nainital
+
+@ replace, compound, hinglish, long
+S ahmedabad dwarka somnath
+T Suno Dwarka mein abhi renovation chal raha hai aur mummy ko wahan ki bheed pasand nahi, toh Dwarka ki jagah Porbandar rakh lo, Gandhi ji ka ghar bhi dekh lenge
+O rm dwarka; add porbandar after ahmedabad
+M Dwarka=dwarka; Porbandar=porbandar
+
+@ move, compound, english, long, round-trip
+S pune lonavala mahabaleshwar satara pune
+T Actually it makes more sense to go to Satara first since it's on the highway, so put Satara right after Pune at the start and then Mahabaleshwar and Lonavala on the way back
+O set pune satara mahabaleshwar lonavala pune
+M Satara=satara; Pune=pune; Mahabaleshwar=mahabaleshwar; Lonavala=lonavala
+
+@ compound, add, remove, hinglish
+S delhi agra jaipur udaipur
+T Agra aur Udaipur hata do, Jaipur ke baad Jodhpur
+O rm agra; rm udaipur; add jodhpur after jaipur
+M Agra=agra; Udaipur=udaipur; Jaipur=jaipur; Jodhpur=jodhpur
+
+@ compound, add, remove, english, typo
+S kolkata darjeeling gangtok
+T Take out Darjiling, add Siliguri before Gangtok and Pelling after it
+O rm darjeeling; add siliguri before gangtok; add pelling after gangtok
+M Darjiling=darjeeling; Siliguri=siliguri; Gangtok=gangtok; Pelling=pelling
+
+@ compound, add, english, alias, many-stops
+S thiruvananthapuram kanyakumari
+T Start from Cochin instead, then Alleppey, Varkala, Trivandrum and Kanyakumari
+O set kochi alappuzha varkala thiruvananthapuram kanyakumari
+M Cochin=kochi; Alleppey=alappuzha; Varkala=varkala; Trivandrum=thiruvananthapuram; Kanyakumari=kanyakumari
+
+@ replace, compound, hinglish, trap-word
+S chennai madurai kanyakumari
+T Wahan sambhar badiya milta hai par Madurai ki jagah Tirunelveli rakho
+O rm madurai; add tirunelveli after chennai
+M Madurai=madurai; Tirunelveli=tirunelveli
+
+@ move, compound, english, trap-word
+S lucknow kanpur agra delhi
+T Anand says Kanpur should be after Agra
+O rm kanpur; add kanpur after agra
+M Kanpur=kanpur; Agra=agra
+
+@ replace, compound, english
+S bhopal indore ujjain
+T Change Indore to Dewas
+O rm indore; add dewas after bhopal
+M Indore=indore; Dewas=dewas
+
+@ replace, compound, hinglish, tourist, alias
+S guwahati shillong tawang
+T Tawang ki jagah Kaziranga
+O rm tawang; add kohora after shillong
+M Tawang=tawang; Kaziranga=kohora
+
+@ compound, add, remove, english, round-trip
+S bengaluru mysuru ooty bengaluru
+T Drop Ooty and add Coorg after Mysore
+O rm ooty; add madikeri after mysuru
+M Ooty=ooty; Coorg=madikeri; Mysore=mysuru
+
+@ compound, hinglish, long, add, remove
+S delhi jaipur ajmer
+T Ek kaam karo, Ajmer wala stop hata do kyunki dargah humne pichhle saal dekh li thi, aur Jaipur ke baad Ranthambore ke liye Sawai Madhopur aur phir Kota daal do
+O rm ajmer; add sawai-madhopur after jaipur; add kota after sawai-madhopur
+M Ajmer=ajmer; Jaipur=jaipur; Ranthambore=sawai-madhopur; Sawai Madhopur=sawai-madhopur; Kota=kota
+
+@ move, compound, hinglish
+S hyderabad warangal vijayawada visakhapatnam
+T Warangal ko Vijayawada ke baad karo
+O rm warangal; add warangal after vijayawada
+M Warangal=warangal; Vijayawada=vijayawada
+
+@ replace, compound, english, typo
+S mumbai pune hyderabad
+T Hydrabad is too far, change it to Solapur
+O rm hyderabad; add solapur after pune
+M Hydrabad=hyderabad; Solapur=solapur
+
+@ compound, add, english, many-stops, position
+S delhi agra varanasi
+T Add Gwalior after Agra, Khajuraho after Gwalior, and Prayagraj before Varanasi
+O add gwalior after agra; add khajuraho after gwalior; add prayagraj before varanasi
+M Gwalior=gwalior; Agra=agra; Khajuraho=khajuraho; Prayagraj=prayagraj; Varanasi=varanasi
+
+@ replace, compound, hinglish, typo
+S kolkata bhubaneswar puri
+T Kolkatta se shuru mat karo, Howrah se karo
+O rm kolkata; add howrah before bhubaneswar
+M Kolkatta=kolkata; Howrah=howrah
+
+@ move, compound, english
+S patna rajgir nalanda bodh-gaya
+T Nalanda first, then Rajgir
+O rm nalanda; add nalanda before rajgir
+M Nalanda=nalanda; Rajgir=rajgir
+
+@ replace, compound, english, long, tourist
+S jammu srinagar sonamarg
+T We checked the weather and Sonmarg might be snowed in that week, so let's switch it to Pahalgam which should be open, and leave everything else as it is
+O rm sonamarg; add pahalgam after srinagar
+M Sonmarg=sonamarg; Pahalgam=pahalgam
+
+@ compound, remove, add, hinglish, alias
+S mumbai pune bengaluru
+T Bangalore hata ke Goa daal do end mein
+O rm bengaluru; add panaji end
+M Bangalore=bengaluru; Goa=panaji
+
+@ move, compound, hinglish, round-trip
+S jaipur ajmer pushkar jaipur
+T Pushkar pehle, Ajmer baad mein
+O rm pushkar; add pushkar before ajmer
+M Pushkar=pushkar; Ajmer=ajmer
+
+@ replace, compound, english, alias
+S delhi gurugram jaipur
+T Instead of Gurgaon, go through Rewari
+O rm gurugram; add rewari after delhi
+M Gurgaon=gurugram; Rewari=rewari
+
+@ compound, add, remove, english, long, many-stops
+S chennai vellore bengaluru mysuru
+T OK here's the thing, my cousin moved out of Vellore so there's no reason to stop there anymore, but we do want to see Hampi, so after Bengaluru add Hampi, and drop Mysuru since we've been
+O rm vellore; add hampi after bengaluru; rm mysuru
+M Vellore=vellore; Hampi=hampi; Bengaluru=bengaluru; Mysuru=mysuru
+
+@ replace, compound, hinglish, typo
+S nagpur jabalpur khajuraho
+T Jabalpr ki jagah Katni
+O rm jabalpur; add katni after nagpur
+M Jabalpr=jabalpur; Katni=katni
+
+@ move, compound, english, typo
+S delhi chandigarh amritsar ludhiana
+T Ludhiana should be before Amritsr
+O rm ludhiana; add ludhiana before amritsar
+M Ludhiana=ludhiana; Amritsr=amritsar
+
+@ compound, add, hinglish, tourist
+S manali kaza
+T Manali ke baad Sissu aur Kaza ke baad Chandratal nahi... Kaza ke baad Tabo
+O add sissu after manali; add tabo after kaza
+M Manali=manali; Sissu=sissu; Kaza=kaza; Tabo=tabo
+
+@ replace, compound, english, tourist
+S kolkata siliguri darjeeling
+T Darjeeling is too touristy now, do Kurseong instead
+O rm darjeeling; add kurseong after siliguri
+M Darjeeling=darjeeling; Kurseong=kurseong
+
+@ compound, remove, hinglish, many-stops
+S delhi agra gwalior jhansi bhopal nagpur
+T Gwalior, Jhansi aur Bhopal teeno hata do
+O rm gwalior; rm jhansi; rm bhopal
+M Gwalior=gwalior; Jhansi=jhansi; Bhopal=bhopal
+
+@ move, compound, hinglish, long
+S lucknow ayodhya varanasi prayagraj
+T Mujhe lagta hai Prayagraj pehle karna chahiye kyunki wahan sangam mein snaan karke phir Kashi Vishwanath jaana hai, toh Prayagraj ko Varanasi se pehle kar do
+O rm prayagraj; add prayagraj before varanasi
+M Prayagraj=prayagraj; Kashi=varanasi; Prayagraj=prayagraj; Varanasi=varanasi
+
+@ replace, compound, english, alias
+S hyderabad bengaluru mysuru
+T Replace Mysore with Coorg
+O rm mysuru; add madikeri after bengaluru
+M Mysore=mysuru; Coorg=madikeri
+
+@ compound, add, remove, english
+S surat vadodara ahmedabad
+T Remove Vadodara, add Bharuch after Surat and Anand before Ahmedabad
+O rm vadodara; add bharuch after surat; add anand before ahmedabad
+M Vadodara=vadodara; Bharuch=bharuch; Surat=surat; Anand=anand; Ahmedabad=ahmedabad
+
+@ replace, compound, hinglish
+S raipur bilaspur korba
+T Korba ki jagah Ambikapur
+O rm korba; add ambikapur after bilaspur
+M Korba=korba; Ambikapur=ambikapur
+
+@ move, compound, english, round-trip
+S kochi munnar alappuzha kochi
+T Do Alleppey first and Munnar after it
+O rm alappuzha; add alappuzha before munnar
+M Alleppey=alappuzha; Munnar=munnar
+
+@ compound, add, hinglish, typo, many-stops, round-trip
+S jaipur jodhpur
+T Jodhpur ke baad Jaisalmir, uske baad Bikaner aur phir wapas Jaipr
+O set jaipur jodhpur jaisalmer bikaner jaipur
+M Jodhpur=jodhpur; Jaisalmir=jaisalmer; Bikaner=bikaner; Jaipr=jaipur
+
+@ replace, compound, english
+S kolkata durgapur ranchi
+T Asansol instead of Durgapur
+O rm durgapur; add asansol after kolkata
+M Asansol=asansol; Durgapur=durgapur
+
+@ move, compound, hinglish
+S guwahati tezpur shillong
+T Shillong ko Tezpur se pehle rakho
+O rm shillong; add shillong before tezpur
+M Shillong=shillong; Tezpur=tezpur
+
+@ compound, add, remove, english, tourist
+S mumbai alibag
+T Take out Alibag and add Kashid and Murud at the end
+O rm alibag; add kashid end; add murud end
+M Alibag=alibag; Kashid=kashid; Murud=murud
+
+@ replace, compound, hinglish, alias
+S delhi chandigarh dharamshala
+T Dharamsala ki jagah Mcleodganj
+O rm dharamshala; add mcleod-ganj after chandigarh
+M Dharamsala=dharamshala; Mcleodganj=mcleod-ganj
+
+@ compound, add, remove, english, long
+S bhubaneswar puri konark
+T Puri was amazing last time but my dad wants to see the Chilika lake side and Gopalpur beach, so remove Puri and add Gopalpur after Konark please
+O rm puri; add gopalpur after konark
+M Puri=puri; Gopalpur=gopalpur; Konark=konark

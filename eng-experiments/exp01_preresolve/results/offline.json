@@ -1,0 +1,841 @@
+{
+ "overall": [
+  {
+   "matcher": "exact (v25)",
+   "examples": 300,
+   "gold_mentions": 560,
+   "detections": 535,
+   "correct": 513,
+   "precision": 0.9589,
+   "recall": 0.9161,
+   "false_positives": 22,
+   "wrong_ok": 0,
+   "examples_all_covered": "206/251",
+   "examples_all_known_incl_trip": "221/251"
+  },
+  {
+   "matcher": "exact+fuzzy>=85",
+   "examples": 300,
+   "gold_mentions": 560,
+   "detections": 584,
+   "correct": 541,
+   "precision": 0.9264,
+   "recall": 0.9661,
+   "false_positives": 41,
+   "wrong_ok": 2,
+   "examples_all_covered": "232/251",
+   "examples_all_known_incl_trip": "233/251"
+  },
+  {
+   "matcher": "exact+fuzzy>=90",
+   "examples": 300,
+   "gold_mentions": 560,
+   "detections": 566,
+   "correct": 538,
+   "precision": 0.9505,
+   "recall": 0.9607,
+   "false_positives": 26,
+   "wrong_ok": 2,
+   "examples_all_covered": "229/251",
+   "examples_all_known_incl_trip": "230/251"
+  },
+  {
+   "matcher": "exact+fuzzy>=95",
+   "examples": 300,
+   "gold_mentions": 560,
+   "detections": 545,
+   "correct": 522,
+   "precision": 0.9578,
+   "recall": 0.9321,
+   "false_positives": 23,
+   "wrong_ok": 0,
+   "examples_all_covered": "215/251",
+   "examples_all_known_incl_trip": "223/251"
+  }
+ ],
+ "by_tag": {
+  "typo": [
+   {
+    "matcher": "exact (v25)",
+    "examples": 31,
+    "gold_mentions": 68,
+    "detections": 45,
+    "correct": 45,
+    "precision": 1.0,
+    "recall": 0.6618,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "9/30",
+    "examples_all_known_incl_trip": "19/30"
+   },
+   {
+    "matcher": "exact+fuzzy>=85",
+    "examples": 31,
+    "gold_mentions": 68,
+    "detections": 69,
+    "correct": 68,
+    "precision": 0.9855,
+    "recall": 1.0,
+    "false_positives": 1,
+    "wrong_ok": 0,
+    "examples_all_covered": "30/30",
+    "examples_all_known_incl_trip": "30/30"
+   },
+   {
+    "matcher": "exact+fuzzy>=90",
+    "examples": 31,
+    "gold_mentions": 68,
+    "detections": 65,
+    "correct": 65,
+    "precision": 1.0,
+    "recall": 0.9559,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "27/30",
+    "examples_all_known_incl_trip": "27/30"
+   },
+   {
+    "matcher": "exact+fuzzy>=95",
+    "examples": 31,
+    "gold_mentions": 68,
+    "detections": 50,
+    "correct": 50,
+    "precision": 1.0,
+    "recall": 0.7353,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "14/30",
+    "examples_all_known_incl_trip": "20/30"
+   }
+  ],
+  "alias": [
+   {
+    "matcher": "exact (v25)",
+    "examples": 34,
+    "gold_mentions": 90,
+    "detections": 88,
+    "correct": 88,
+    "precision": 1.0,
+    "recall": 0.9778,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "32/34",
+    "examples_all_known_incl_trip": "32/34"
+   },
+   {
+    "matcher": "exact+fuzzy>=85",
+    "examples": 34,
+    "gold_mentions": 90,
+    "detections": 91,
+    "correct": 88,
+    "precision": 0.967,
+    "recall": 0.9778,
+    "false_positives": 2,
+    "wrong_ok": 1,
+    "examples_all_covered": "32/34",
+    "examples_all_known_incl_trip": "32/34"
+   },
+   {
+    "matcher": "exact+fuzzy>=90",
+    "examples": 34,
+    "gold_mentions": 90,
+    "detections": 90,
+    "correct": 88,
+    "precision": 0.9778,
+    "recall": 0.9778,
+    "false_positives": 1,
+    "wrong_ok": 1,
+    "examples_all_covered": "32/34",
+    "examples_all_known_incl_trip": "32/34"
+   },
+   {
+    "matcher": "exact+fuzzy>=95",
+    "examples": 34,
+    "gold_mentions": 90,
+    "detections": 88,
+    "correct": 88,
+    "precision": 1.0,
+    "recall": 0.9778,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "32/34",
+    "examples_all_known_incl_trip": "32/34"
+   }
+  ],
+  "trap-word": [
+   {
+    "matcher": "exact (v25)",
+    "examples": 20,
+    "gold_mentions": 31,
+    "detections": 49,
+    "correct": 30,
+    "precision": 0.6122,
+    "recall": 0.9677,
+    "false_positives": 19,
+    "wrong_ok": 0,
+    "examples_all_covered": "15/16",
+    "examples_all_known_incl_trip": "16/16"
+   },
+   {
+    "matcher": "exact+fuzzy>=85",
+    "examples": 20,
+    "gold_mentions": 31,
+    "detections": 52,
+    "correct": 31,
+    "precision": 0.5962,
+    "recall": 1.0,
+    "false_positives": 21,
+    "wrong_ok": 0,
+    "examples_all_covered": "16/16",
+    "examples_all_known_incl_trip": "16/16"
+   },
+   {
+    "matcher": "exact+fuzzy>=90",
+    "examples": 20,
+    "gold_mentions": 31,
+    "detections": 51,
+    "correct": 31,
+    "precision": 0.6078,
+    "recall": 1.0,
+    "false_positives": 20,
+    "wrong_ok": 0,
+    "examples_all_covered": "16/16",
+    "examples_all_known_incl_trip": "16/16"
+   },
+   {
+    "matcher": "exact+fuzzy>=95",
+    "examples": 20,
+    "gold_mentions": 31,
+    "detections": 51,
+    "correct": 31,
+    "precision": 0.6078,
+    "recall": 1.0,
+    "false_positives": 20,
+    "wrong_ok": 0,
+    "examples_all_covered": "16/16",
+    "examples_all_known_incl_trip": "16/16"
+   }
+  ],
+  "same-name": [
+   {
+    "matcher": "exact (v25)",
+    "examples": 30,
+    "gold_mentions": 43,
+    "detections": 44,
+    "correct": 42,
+    "precision": 0.9545,
+    "recall": 0.9767,
+    "false_positives": 2,
+    "wrong_ok": 0,
+    "examples_all_covered": "23/24",
+    "examples_all_known_incl_trip": "23/24"
+   },
+   {
+    "matcher": "exact+fuzzy>=85",
+    "examples": 30,
+    "gold_mentions": 43,
+    "detections": 47,
+    "correct": 43,
+    "precision": 0.9149,
+    "recall": 1.0,
+    "false_positives": 4,
+    "wrong_ok": 0,
+    "examples_all_covered": "24/24",
+    "examples_all_known_incl_trip": "24/24"
+   },
+   {
+    "matcher": "exact+fuzzy>=90",
+    "examples": 30,
+    "gold_mentions": 43,
+    "detections": 45,
+    "correct": 43,
+    "precision": 0.9556,
+    "recall": 1.0,
+    "false_positives": 2,
+    "wrong_ok": 0,
+    "examples_all_covered": "24/24",
+    "examples_all_known_incl_trip": "24/24"
+   },
+   {
+    "matcher": "exact+fuzzy>=95",
+    "examples": 30,
+    "gold_mentions": 43,
+    "detections": 44,
+    "correct": 42,
+    "precision": 0.9545,
+    "recall": 0.9767,
+    "false_positives": 2,
+    "wrong_ok": 0,
+    "examples_all_covered": "23/24",
+    "examples_all_known_incl_trip": "23/24"
+   }
+  ],
+  "region": [
+   {
+    "matcher": "exact (v25)",
+    "examples": 23,
+    "gold_mentions": 39,
+    "detections": 25,
+    "correct": 25,
+    "precision": 1.0,
+    "recall": 0.641,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "9/23",
+    "examples_all_known_incl_trip": "9/23"
+   },
+   {
+    "matcher": "exact+fuzzy>=85",
+    "examples": 23,
+    "gold_mentions": 39,
+    "detections": 25,
+    "correct": 25,
+    "precision": 1.0,
+    "recall": 0.641,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "9/23",
+    "examples_all_known_incl_trip": "9/23"
+   },
+   {
+    "matcher": "exact+fuzzy>=90",
+    "examples": 23,
+    "gold_mentions": 39,
+    "detections": 25,
+    "correct": 25,
+    "precision": 1.0,
+    "recall": 0.641,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "9/23",
+    "examples_all_known_incl_trip": "9/23"
+   },
+   {
+    "matcher": "exact+fuzzy>=95",
+    "examples": 23,
+    "gold_mentions": 39,
+    "detections": 25,
+    "correct": 25,
+    "precision": 1.0,
+    "recall": 0.641,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "9/23",
+    "examples_all_known_incl_trip": "9/23"
+   }
+  ],
+  "tourist": [
+   {
+    "matcher": "exact (v25)",
+    "examples": 32,
+    "gold_mentions": 101,
+    "detections": 98,
+    "correct": 98,
+    "precision": 1.0,
+    "recall": 0.9703,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "29/32",
+    "examples_all_known_incl_trip": "30/32"
+   },
+   {
+    "matcher": "exact+fuzzy>=85",
+    "examples": 32,
+    "gold_mentions": 101,
+    "detections": 100,
+    "correct": 100,
+    "precision": 1.0,
+    "recall": 0.9901,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "31/32",
+    "examples_all_known_incl_trip": "31/32"
+   },
+   {
+    "matcher": "exact+fuzzy>=90",
+    "examples": 32,
+    "gold_mentions": 101,
+    "detections": 100,
+    "correct": 100,
+    "precision": 1.0,
+    "recall": 0.9901,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "31/32",
+    "examples_all_known_incl_trip": "31/32"
+   },
+   {
+    "matcher": "exact+fuzzy>=95",
+    "examples": 32,
+    "gold_mentions": 101,
+    "detections": 99,
+    "correct": 99,
+    "precision": 1.0,
+    "recall": 0.9802,
+    "false_positives": 0,
+    "wrong_ok": 0,
+    "examples_all_covered": "30/32",
+    "examples_all_known_incl_trip": "31/32"
+   }
+  ],
+  "answer": [
+   {
+    "matcher": "exact (v25)",
+    "examples": 20,
+    "gold_mentions": 16,
+    "detections": 16,
+    "correct": 15,
+    "precision": 0.9375,
+    "recall": 0.9375,
+    "false_positives": 1,
+    "wrong_ok": 0,
+    "examples_all_covered": "13/14",
+    "examples_all_known_incl_trip": "13/14"
+   },
+   {
+    "matcher": "exact+fuzzy>=85",
+    "examples": 20,
+    "gold_mentions": 16,
+    "detections": 18,
+    "correct": 16,
+    "precision": 0.8889,
+    "recall": 1.0,
+    "false_positives": 2,
+    "wrong_ok": 0,
+    "examples_all_covered": "14/14",
+    "examples_all_known_incl_trip": "14/14"
+   },
+   {
+    "matcher": "exact+fuzzy>=90",
+    "examples": 20,
+    "gold_mentions": 16,
+    "detections": 17,
+    "correct": 16,
+    "precision": 0.9412,
+    "recall": 1.0,
+    "false_positives": 1,
+    "wrong_ok": 0,
+    "examples_all_covered": "14/14",
+    "examples_all_known_incl_trip": "14/14"
+   },
+   {
+    "matcher": "exact+fuzzy>=95",
+    "examples": 20,
+    "gold_mentions": 16,
+    "detections": 16,
+    "correct": 15,
+    "precision": 0.9375,
+    "recall": 0.9375,
+    "false_positives": 1,
+    "wrong_ok": 0,
+    "examples_all_covered": "13/14",
+    "examples_all_known_incl_trip": "13/14"
+   }
+  ],
+  "hinglish": [
+   {
+    "matcher": "exact (v25)",
+    "examples": 150,
+    "gold_mentions": 269,
+    "detections": 256,
+    "correct": 244,
+    "precision": 0.9531,
+    "recall": 0.9071,
+    "false_positives": 12,
+    "wrong_ok": 0,
+    "examples_all_covered": "102/125",
+    "examples_all_known_incl_trip": "108/125"
+   },
+   {
+    "matcher": "exact+fuzzy>=85",
+    "examples": 150,
+    "gold_mentions": 269,
+    "detections": 286,
+    "correct": 259,
+    "precision": 0.9056,
+    "recall": 0.9628,
+    "false_positives": 26,
+    "wrong_ok": 1,
+    "examples_all_covered": "115/125",
+    "examples_all_known_incl_trip": "116/125"
+   },
+   {
+    "matcher": "exact+fuzzy>=90",
+    "examples": 150,
+    "gold_mentions": 269,
+    "detections": 273,
+    "correct": 256,
+    "precision": 0.9377,
+    "recall": 0.9517,
+    "false_positives": 16,
+    "wrong_ok": 1,
+    "examples_all_covered": "112/125",
+    "examples_all_known_incl_trip": "113/125"
+   },
+   {
+    "matcher": "exact+fuzzy>=95",
+    "examples": 150,
+    "gold_mentions": 269,
+    "detections": 259,
+    "correct": 246,
+    "precision": 0.9498,
+    "recall": 0.9145,
+    "false_positives": 13,
+    "wrong_ok": 0,
+    "examples_all_covered": "104/125",
+    "examples_all_known_incl_trip": "108/125"
+   }
+  ],
+  "english": [
+   {
+    "matcher": "exact (v25)",
+    "examples": 150,
+    "gold_mentions": 291,
+    "detections": 279,
+    "correct": 269,
+    "precision": 0.9642,
+    "recall": 0.9244,
+    "false_positives": 10,
+    "wrong_ok": 0,
+    "examples_all_covered": "104/126",
+    "examples_all_known_incl_trip": "113/126"
+   },
+   {
+    "matcher": "exact+fuzzy>=85",
+    "examples": 150,
+    "gold_mentions": 291,
+    "detections": 298,
+    "correct": 282,
+    "precision": 0.9463,
+    "recall": 0.9691,
+    "false_positives": 15,
+    "wrong_ok": 1,
+    "examples_all_covered": "117/126",
+    "examples_all_known_incl_trip": "117/126"
+   },
+   {
+    "matcher": "exact+fuzzy>=90",
+    "examples": 150,
+    "gold_mentions": 291,
+    "detections": 293,
+    "correct": 282,
+    "precision": 0.9625,
+    "recall": 0.9691,
+    "false_positives": 10,
+    "wrong_ok": 1,
+    "examples_all_covered": "117/126",
+    "examples_all_known_incl_trip": "117/126"
+   },
+   {
+    "matcher": "exact+fuzzy>=95",
+    "examples": 150,
+    "gold_mentions": 291,
+    "detections": 286,
+    "correct": 276,
+    "precision": 0.965,
+    "recall": 0.9485,
+    "false_positives": 10,
+    "wrong_ok": 0,
+    "examples_all_covered": "111/126",
+    "examples_all_known_incl_trip": "115/126"
+   }
+  ]
+ },
+ "lists": {
+  "exact (v25)": {
+   "false_positives": [
+    [
+     "sambhar->sambhar(ok)",
+     3
+    ],
+    [
+     "khana->khanna(ok)",
+     3
+    ],
+    [
+     "puri->puri(ok)",
+     2
+    ],
+    [
+     "Zero->ziro(ok)",
+     2
+    ],
+    [
+     "lava->lava(ok)",
+     2
+    ],
+    [
+     "Anand->anand(ok)",
+     2
+    ],
+    [
+     "Bihar->bihar-sharif(ok)",
+     2
+    ],
+    [
+     "Sagar->sagar(ok)",
+     2
+    ],
+    [
+     "anand->anand(ok)",
+     1
+    ],
+    [
+     "Uri->uri(ok)",
+     1
+    ],
+    [
+     "tala->tala(ok)",
+     1
+    ],
+    [
+     "Islamabad->anantnag(ok)",
+     1
+    ]
+   ],
+   "wrong_ok": []
+  },
+  "exact+fuzzy>=85": {
+   "false_positives": [
+    [
+     "sambhar->sambhar(ok)",
+     3
+    ],
+    [
+     "khana->khanna(ok)",
+     3
+    ],
+    [
+     "puri->puri(ok)",
+     2
+    ],
+    [
+     "camp->chamba-himachal-pradesh(ok)",
+     2
+    ],
+    [
+     "karna->karnal(ok)",
+     2
+    ],
+    [
+     "Zero->ziro(ok)",
+     2
+    ],
+    [
+     "daalo->aalo(ok)",
+     2
+    ],
+    [
+     "lava->lava(ok)",
+     2
+    ],
+    [
+     "bheed->beed(ok)",
+     2
+    ],
+    [
+     "Anand->anand(ok)",
+     2
+    ],
+    [
+     "Bihar->bihar-sharif(ok)",
+     2
+    ],
+    [
+     "Tripura->agartala(ambiguous)",
+     2
+    ],
+    [
+     "Sagar->sagar(ok)",
+     2
+    ],
+    [
+     "anand->anand(ok)",
+     1
+    ],
+    [
+     "gaya->gaya(ok)",
+     1
+    ],
+    [
+     "Ganga->guna(ok)",
+     1
+    ],
+    [
+     "baar->basar(ok)",
+     1
+    ],
+    [
+     "chal->chail(ok)",
+     1
+    ],
+    [
+     "bana->patna(ambiguous)",
+     1
+    ],
+    [
+     "kitna->machilipatnam(ok)",
+     1
+    ],
+    [
+     "best->bet-dwarka(ok)",
+     1
+    ],
+    [
+     "Uri->uri(ok)",
+     1
+    ],
+    [
+     "tala->tala(ok)",
+     1
+    ],
+    [
+     "wahi->wai(ok)",
+     1
+    ],
+    [
+     "forget Madhya Pradesh->indore(ok)",
+     1
+    ],
+    [
+     "Islamabad->anantnag(ok)",
+     1
+    ]
+   ],
+   "wrong_ok": [
+    "e003: to Goa->old-goa (gold panaji)",
+    "e284: ko Goa->old-goa (gold panaji)"
+   ]
+  },
+  "exact+fuzzy>=90": {
+   "false_positives": [
+    [
+     "sambhar->sambhar(ok)",
+     3
+    ],
+    [
+     "khana->khanna(ok)",
+     3
+    ],
+    [
+     "puri->puri(ok)",
+     2
+    ],
+    [
+     "karna->karnal(ok)",
+     2
+    ],
+    [
+     "Zero->ziro(ok)",
+     2
+    ],
+    [
+     "lava->lava(ok)",
+     2
+    ],
+    [
+     "Anand->anand(ok)",
+     2
+    ],
+    [
+     "Bihar->bihar-sharif(ok)",
+     2
+    ],
+    [
+     "Sagar->sagar(ok)",
+     2
+    ],
+    [
+     "anand->anand(ok)",
+     1
+    ],
+    [
+     "gaya->gaya(ok)",
+     1
+    ],
+    [
+     "kitna->machilipatnam(ok)",
+     1
+    ],
+    [
+     "Uri->uri(ok)",
+     1
+    ],
+    [
+     "tala->tala(ok)",
+     1
+    ],
+    [
+     "Islamabad->anantnag(ok)",
+     1
+    ]
+   ],
+   "wrong_ok": [
+    "e003: to Goa->old-goa (gold panaji)",
+    "e284: ko Goa->old-goa (gold panaji)"
+   ]
+  },
+  "exact+fuzzy>=95": {
+   "false_positives": [
+    [
+     "sambhar->sambhar(ok)",
+     3
+    ],
+    [
+     "khana->khanna(ok)",
+     3
+    ],
+    [
+     "puri->puri(ok)",
+     2
+    ],
+    [
+     "Zero->ziro(ok)",
+     2
+    ],
+    [
+     "lava->lava(ok)",
+     2
+    ],
+    [
+     "Anand->anand(ok)",
+     2
+    ],
+    [
+     "Bihar->bihar-sharif(ok)",
+     2
+    ],
+    [
+     "Sagar->sagar(ok)",
+     2
+    ],
+    [
+     "anand->anand(ok)",
+     1
+    ],
+    [
+     "gaya->gaya(ok)",
+     1
+    ],
+    [
+     "Uri->uri(ok)",
+     1
+    ],
+    [
+     "tala->tala(ok)",
+     1
+    ],
+    [
+     "Islamabad->anantnag(ok)",
+     1
+    ]
+   ],
+   "wrong_ok": []
+  }
+ },
+ "meta": {
+  "commit": "256a261",
+  "dirty": true,
+  "examples": 300
+ }
+}

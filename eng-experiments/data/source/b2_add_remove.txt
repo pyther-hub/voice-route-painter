@@ -1,0 +1,302 @@
+# Batch 2: adds, removes and relative positions on an existing trip.
+
+@ remove, hinglish
+S lucknow agra jaipur
+T Agra hata do
+O rm agra
+M Agra=agra
+
+@ remove, english
+S delhi chandigarh shimla manali
+T Remove Shimla from the trip
+O rm shimla
+M Shimla=shimla
+
+@ add, position, hinglish
+S lucknow agra jaipur
+T Jaipur ke baad Udaipur Rajasthan wala jodo
+O add udaipur after jaipur
+M Jaipur=jaipur; Udaipur=udaipur
+
+@ add, position, english
+S mumbai pune bengaluru
+T Add Kolhapur after Pune
+O add kolhapur after pune
+M Kolhapur=kolhapur; Pune=pune
+
+@ add, position, hinglish
+S delhi jaipur
+T Jaipur se pehle Neemrana bhi daal do
+O add neemrana before jaipur
+M Jaipur=jaipur; Neemrana=neemrana
+
+@ add, position, english, tourist
+S chennai madurai
+T Put Thanjavur before Madurai
+O add thanjavur before madurai
+M Thanjavur=thanjavur; Madurai=madurai
+
+@ add, hinglish
+S hyderabad bengaluru
+T End mein Mysore bhi jod do
+O add mysuru end
+M Mysore=mysuru
+
+@ add, english, alias
+S delhi agra
+T Also add Banaras at the end
+O add varanasi end
+M Banaras=varanasi
+
+@ add, compound, hinglish
+S delhi chandigarh
+T Chandigarh ke baad Shimla aur phir Manali
+O add shimla after chandigarh; add manali after shimla
+M Chandigarh=chandigarh; Shimla=shimla; Manali=manali
+
+@ add, compound, english, position
+S mumbai bengaluru
+T Add Pune after Mumbai and Hubli before Bengaluru
+O add pune after mumbai; add hubballi before bengaluru
+M Pune=pune; Mumbai=mumbai; Hubli=hubballi; Bengaluru=bengaluru
+
+@ remove, compound, hinglish
+S delhi agra gwalior jhansi bhopal
+T Gwalior aur Jhansi dono hata do
+O rm gwalior; rm jhansi
+M Gwalior=gwalior; Jhansi=jhansi
+
+@ remove, compound, english, many-stops
+S jaipur ajmer pushkar jodhpur jaisalmer bikaner
+T Drop Ajmer and Bikaner
+O rm ajmer; rm bikaner
+M Ajmer=ajmer; Bikaner=bikaner
+
+@ remove, hinglish, typo
+S kolkata bhubaneswar puri konark
+T Bhubneshwar nahi jaana, hata do
+O rm bhubaneswar
+M Bhubneshwar=bhubaneswar
+
+@ remove, english, alias
+S chennai puducherry thanjavur
+T Skip Pondicherry
+O rm puducherry
+M Pondicherry=puducherry
+
+@ add, position, hinglish, typo
+S ahmedabad rajkot
+T Ahmdabad ke baad Baroda daalo
+O add vadodara after ahmedabad
+M Ahmdabad=ahmedabad; Baroda=vadodara
+
+@ add, position, english, tourist
+S jaipur jodhpur
+T Between Jaipur and Jodhpur add Pushkar
+O add pushkar after jaipur
+A add pushkar before jodhpur
+M Jaipur=jaipur; Jodhpur=jodhpur; Pushkar=pushkar
+
+@ add, position, hinglish, tourist
+S bengaluru kochi
+T Bangalore aur Kochi ke beech mein Coorg rukna hai
+O add madikeri after bengaluru
+M Bangalore=bengaluru; Kochi=kochi; Coorg=madikeri
+
+@ add, english, position, many-stops
+S delhi agra lucknow varanasi patna
+T Insert Prayagraj right after Lucknow
+O add prayagraj after lucknow
+M Prayagraj=prayagraj; Lucknow=lucknow
+
+@ remove, hinglish, many-stops
+S mumbai lonavala pune satara kolhapur panaji
+T Satara wala stop nikaal do
+O rm satara
+M Satara=satara
+
+@ add, remove, compound, hinglish
+S delhi agra jaipur
+T Agra hata do aur Jaipur ke baad Ajmer jodo
+O rm agra; add ajmer after jaipur
+M Agra=agra; Jaipur=jaipur; Ajmer=ajmer
+
+@ add, remove, compound, english
+S kolkata siliguri darjeeling
+T Remove Siliguri and add Gangtok at the end
+O rm siliguri; add gangtok end
+M Siliguri=siliguri; Gangtok=gangtok
+
+@ add, hinglish, trap-word
+S lucknow varanasi
+T Wahan kachori puri khaayenge, end mein Prayagraj bhi jod do
+O add prayagraj end
+M Prayagraj=prayagraj
+
+@ add, english, trap-word
+S jaipur udaipur
+T Life is a lava of fun haha, add Chittorgarh before Udaipur
+O add chittorgarh before udaipur
+M Chittorgarh=chittorgarh; Udaipur=udaipur
+
+@ remove, hinglish, trap-word
+S kota bundi chittorgarh
+T Mera quota khatam ho gaya, Kota hata do
+O rm kota
+M Kota=kota
+
+@ add, position, hinglish, alias
+S pune nashik
+T Poona aur Nashik ke beech Lonavla nahi, Shirdi ke baad... sorry, Nashik ke baad Shirdi
+O add shirdi after nashik
+M Poona=pune; Nashik=nashik; Lonavla=lonavala; Shirdi=shirdi
+
+@ add, english, long, position
+S delhi haridwar
+T My grandmother has always wanted to see the Ganga aarti at Rishikesh as well, so after Haridwar please add Rishikesh, she will be very happy about it
+O add rishikesh after haridwar
+M Rishikesh=rishikesh; Haridwar=haridwar
+
+@ remove, hinglish, long
+S delhi mathura agra gwalior
+T Dekho Mathura toh hum pichhli baar ja chuke hain aur wahan bahut bheed hoti hai festival time pe, isliye Mathura ko list se hata do please
+O rm mathura
+M Mathura=mathura
+
+@ add, english, typo
+S chennai bengaluru
+T add Vellore after Chenai
+O add vellore after chennai
+M Vellore=vellore; Chenai=chennai
+
+@ add, hinglish, tourist
+S shimla manali
+T Manali ke baad Kasol add karo
+O add kasol after manali
+M Manali=manali; Kasol=kasol
+
+@ remove, english, round-trip
+S bengaluru madikeri kalpetta bengaluru
+T Remove Wayanad from the loop
+O rm kalpetta
+M Wayanad=kalpetta
+
+@ add, position, english, round-trip
+S pune lonavala pune
+T Add Mahabaleshwar after Lonavala
+O add mahabaleshwar after lonavala
+M Mahabaleshwar=mahabaleshwar; Lonavala=lonavala
+
+@ add, hinglish, compound, tourist
+S guwahati shillong
+T Shillong ke baad Cherrapunji aur Dawki dono add kar do
+O add cherrapunji after shillong; add dawki after cherrapunji
+M Shillong=shillong; Cherrapunji=cherrapunji; Dawki=dawki
+
+@ add, english, compound, many-stops
+S delhi agra jaipur
+T Add Mathura before Agra and Ajmer and Udaipur Rajasthan after Jaipur, in that order
+O add mathura before agra; add ajmer after jaipur; add udaipur after ajmer
+M Mathura=mathura; Agra=agra; Ajmer=ajmer; Udaipur=udaipur; Jaipur=jaipur
+
+@ remove, hinglish, typo
+S hyderabad vijayawada visakhapatnam
+T Vijaywada mat rakho
+O rm vijayawada
+M Vijaywada=vijayawada
+
+@ add, english, position
+S kolkata patna
+T Put Dhanbad before Patna
+O add dhanbad before patna
+M Dhanbad=dhanbad; Patna=patna
+
+@ add, hinglish, alias
+S bengaluru mysuru
+T Mysore ke baad Ooty bhi
+O add ooty after mysuru
+M Mysore=mysuru; Ooty=ooty
+
+@ remove, english
+S indore ujjain omkareshwar
+T Take Ujjain off
+O rm ujjain
+M Ujjain=ujjain
+
+@ add, position, hinglish, typo
+S lucknow kanpur
+T Lucknw se pehle Ayodhya rakh do
+O add ayodhya before lucknow
+M Lucknw=lucknow; Ayodhya=ayodhya
+
+@ add, english, tourist, position
+S srinagar pahalgam
+T Gulmarg should come after Srinagar
+O add gulmarg after srinagar
+M Gulmarg=gulmarg; Srinagar=srinagar
+
+@ add, remove, compound, english, typo
+S kolkata bhubaneswar puri
+T Remove Puri and add Konark and Chilka... I mean just Konark, after Bhubneswar
+O rm puri; add konark after bhubaneswar
+M Puri=puri; Konark=konark; Bhubneswar=bhubaneswar
+
+@ add, hinglish, position, many-stops
+S mumbai pune satara kolhapur belagavi hubballi
+T Kolhapur aur Belgaum ke beech mein kuch nahi, Hubli ke baad Dharwad daal do
+O add dharwad after hubballi
+M Kolhapur=kolhapur; Belgaum=belagavi; Hubli=hubballi; Dharwad=dharwad
+
+@ remove, english, compound
+S chennai puducherry thanjavur madurai kanyakumari
+T Get rid of Thanjavur and Madurai, keep the rest
+O rm thanjavur; rm madurai
+M Thanjavur=thanjavur; Madurai=madurai
+
+@ add, hinglish, tourist
+S kolkata digha
+T Digha ke baad Mandarmani
+O add mandarmani after digha
+M Digha=digha; Mandarmani=mandarmani
+
+@ add, english, alias
+S ahmedabad vadodara
+T Add Surat at the end and then Bombay
+O add surat end; add mumbai end
+M Surat=surat; Bombay=mumbai
+
+@ remove, hinglish
+S nagpur raipur bilaspur
+T Raipur ka stop cancel
+O rm raipur
+M Raipur=raipur
+
+@ add, english, position, tourist
+S jabalpur khajuraho
+T I want to see Bhedaghat before Khajuraho
+O add bhedaghat before khajuraho
+M Bhedaghat=bhedaghat; Khajuraho=khajuraho
+
+@ add, hinglish, compound, position
+S delhi lucknow
+T Delhi ke baad Agra aur Lucknow se pehle Kanpur
+O add agra after delhi; add kanpur before lucknow
+M Delhi=delhi; Agra=agra; Lucknow=lucknow; Kanpur=kanpur
+
+@ remove, english, trap-word
+S chennai madurai rameswaram
+T we ate so much sambhar there, okay remove Rameshwaram
+O rm rameswaram
+M Rameshwaram=rameswaram
+
+@ add, hinglish, typo
+S jaipur bikaner
+T Bikaner ke baad Jaisalmir
+O add jaisalmer after bikaner
+M Bikaner=bikaner; Jaisalmir=jaisalmer
+
+@ add, english, alias, position
+S chandigarh manali
+T Add Simla... sorry, Shimla, after Chandigarh
+O add shimla after chandigarh
+M Simla=shimla; Shimla=shimla; Chandigarh=chandigarh

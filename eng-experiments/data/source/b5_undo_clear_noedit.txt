@@ -1,0 +1,295 @@
+# Batch 5: undo, clear, round-trip changes, messages that must not change the trip, trap words.
+
+@ undo, hinglish
+S delhi agra jaipur
+H delhi jaipur
+T wapas pehle jaisa kar do
+O undo 1
+
+@ undo, english
+S mumbai pune panaji
+H mumbai panaji
+T Undo that
+O undo 1
+
+@ undo, hinglish
+S lucknow varanasi
+H lucknow agra varanasi
+T Agra wapas laao, pichla wala sahi tha
+O undo 1
+A add agra after lucknow
+M Agra=agra
+
+@ undo, english
+S chennai madurai kanyakumari
+H chennai madurai / chennai thanjavur madurai
+T Go back two steps
+O undo 2
+
+@ undo, hinglish
+S kolkata siliguri gangtok
+H kolkata darjeeling / kolkata siliguri darjeeling
+T do step peeche jao
+O undo 2
+
+@ undo, english, long
+S jaipur jodhpur
+H jaipur ajmer pushkar jodhpur
+T Hmm no, I liked the version before this one a lot more, with Ajmer and Pushkar in it, please go back to that
+O undo 1
+A add ajmer after jaipur; add pushkar after ajmer
+M Ajmer=ajmer; Pushkar=pushkar
+
+@ undo, compound, add, hinglish
+S delhi agra
+H delhi jaipur
+T undo karo aur phir end mein Ajmer jodo
+O undo 1; add ajmer end
+M Ajmer=ajmer
+
+@ undo, compound, english
+S pune satara
+H pune kolhapur / pune satara kolhapur
+T Undo the last change, then add Sangli at the end
+O undo 1; add sangli end
+M Sangli=sangli
+
+@ undo, hinglish
+S hyderabad warangal
+H hyderabad vijayawada
+T galti ho gayi, undo
+O undo 1
+
+@ undo, english
+S bengaluru ooty
+H bengaluru mysuru ooty / bengaluru madikeri mysuru ooty
+T revert the last three changes
+O undo 3
+
+@ undo, hinglish, typo
+S indore bhopal
+H indore ujjain bhopal
+T Ujain hatana galat tha, wapas karo
+O undo 1
+A add ujjain after indore
+M Ujain=ujjain
+
+@ undo, english
+S patna gaya
+H patna rajgir nalanda
+T Bring back the previous route
+O undo 1
+
+@ undo, hinglish
+S delhi chandigarh
+H delhi chandigarh shimla manali
+T pehle wala route wapas chahiye
+O undo 1
+
+@ undo, english, round-trip
+S ahmedabad dwarka somnath
+H ahmedabad dwarka somnath ahmedabad
+T undo, I do want to come back to Ahmedabad
+O undo 1
+A set ahmedabad dwarka somnath ahmedabad
+M Ahmedabad=ahmedabad
+
+@ undo, hinglish
+S nagpur raipur
+H nagpur jabalpur
+T nahi nahi, undo kar do
+O undo 1
+
+@ clear, hinglish
+S delhi agra jaipur
+T sab clear kar do
+O set
+
+@ clear, english
+S mumbai pune panaji
+T Clear the trip
+O set
+
+@ clear, hinglish
+S lucknow kanpur prayagraj varanasi
+T poora trip mita do, shuru se karte hain
+O set
+
+@ clear, english, many-stops
+S chennai vellore bengaluru mysuru madikeri kalpetta
+T Start over, wipe everything
+O set
+
+@ clear, new-trip, compound, hinglish
+S delhi agra jaipur
+T sab hata do, naya trip: Pune se Goa
+O set pune panaji
+M Pune=pune; Goa=panaji
+
+@ clear, new-trip, compound, english
+S kolkata puri
+T Forget this one, new plan: Hyderabad to Hampi
+O set hyderabad hampi
+M Hyderabad=hyderabad; Hampi=hampi
+
+@ clear, english, long
+S jammu srinagar gulmarg
+T Actually our leave got cancelled so we won't be travelling this month at all, please just clear the whole trip for now
+O set
+
+@ clear, hinglish, round-trip
+S pune lonavala mahabaleshwar pune
+T reset kar do sab
+O set
+
+@ round-trip, hinglish
+S delhi agra jaipur
+T wapas Delhi bhi aana hai
+O set delhi agra jaipur delhi
+M Delhi=delhi
+
+@ round-trip, english
+S bengaluru mysuru ooty
+T Make it a round trip
+O set bengaluru mysuru ooty bengaluru
+
+@ round-trip, english
+S hyderabad warangal vijayawada hyderabad
+T We won't return to Hyderabad, make it one way
+O set hyderabad warangal vijayawada
+M Hyderabad=hyderabad
+
+@ round-trip, hinglish
+S kochi munnar alappuzha
+T Alleppey ke baad wapas Kochi
+O set kochi munnar alappuzha kochi
+M Alleppey=alappuzha; Kochi=kochi
+
+@ round-trip, hinglish, long
+S jaipur ajmer pushkar
+T Pushkar ke baad seedha ghar wapas Jaipur aana hai kyunki Monday ko office hai, toh round trip bana do
+O set jaipur ajmer pushkar jaipur
+M Pushkar=pushkar; Jaipur=jaipur
+
+@ round-trip, english, typo
+S lucknow ayodhya varanasi
+T end back in Lucknw
+O set lucknow ayodhya varanasi lucknow
+M Lucknw=lucknow
+
+@ no-edit, hinglish
+S delhi agra jaipur
+T kitna time lagega total?
+O none
+
+@ no-edit, english
+S mumbai pune panaji
+T Thanks, this looks perfect!
+O none
+
+@ no-edit, hinglish
+S lucknow varanasi
+T ye route theek hai na?
+O none
+
+@ no-edit, english
+T hello
+O none
+
+@ no-edit, hinglish
+S chennai madurai
+T Madurai mein kya dekhne layak hai?
+O none
+M Madurai=madurai
+
+@ no-edit, english
+S kolkata darjeeling
+T What's the best time of year to visit Darjeeling?
+O none
+M Darjeeling=darjeeling
+
+@ no-edit, hinglish, long
+S jaipur jodhpur jaisalmer
+T Ek baat batao, Jaisalmer mein desert camp ke liye kitne din chahiye aur December mein thand kitni hoti hai wahan raat ko?
+O none
+M Jaisalmer=jaisalmer
+
+@ no-edit, english
+S bengaluru mysuru
+T how far is Mysore from Bangalore?
+O none
+M Mysore=mysuru; Bangalore=bengaluru
+
+@ no-edit, hinglish
+S pune mahabaleshwar
+T accha
+O none
+
+@ no-edit, english, trap-word
+S delhi agra
+T Sagar is joining us too, so we'll be four people
+O none
+
+@ no-edit, hinglish, trap-word
+S hyderabad warangal
+T khana kahan khayenge raaste mein?
+O none
+
+@ no-edit, english, trap-word
+S srinagar gulmarg
+T Have you seen Uri? great movie
+O none
+
+@ no-edit, hinglish, trap-word
+S lucknow kanpur
+T ghar pe tala laga ke nikalna hai, yaad dilana
+O none
+
+@ new-trip, english, trap-word
+T Zero idea where to go, maybe Delhi to Rishikesh
+O set delhi rishikesh
+M Delhi=delhi; Rishikesh=rishikesh
+
+@ add, hinglish, trap-word
+S bhopal indore
+T Anand bhai bol raha hai Ujjain bhi jodo end mein
+O add ujjain end
+M Ujjain=ujjain
+
+@ new-trip, hinglish, trap-word, long
+T Kal raat Sagar ke ghar pe dinner kiya, usne bataya Jabalpur se Bhedaghat aur phir Pachmarhi bahut sundar drive hai, wahi plan karo
+O set jabalpur bhedaghat pachmarhi
+M Jabalpur=jabalpur; Bhedaghat=bhedaghat; Pachmarhi=pachmarhi
+
+@ remove, english, trap-word
+S kota bundi chittorgarh udaipur
+T That was a total lava-hot drive last time, remove Bundi
+O rm bundi
+M Bundi=bundi
+
+@ add, hinglish, trap-word, position
+S amritsar jalandhar
+T khana Amritsar mein hi khayenge, Jalandhar ke baad Ludhiana jodo
+O add ludhiana after jalandhar
+M Amritsar=amritsar; Jalandhar=jalandhar; Ludhiana=ludhiana
+
+@ no-edit, english
+S delhi jaipur
+T Is the Delhi Jaipur highway toll heavy?
+O none
+M Delhi=delhi; Jaipur=jaipur
+
+@ no-edit, hinglish
+S guwahati shillong
+T Shillong mein parking milegi?
+O none
+M Shillong=shillong
+
+@ no-edit, english
+T What can you do?
+O none
+
+@ no-edit, hinglish
+S chandigarh shimla
+T kuch nahi, bas dekh raha tha
+O none

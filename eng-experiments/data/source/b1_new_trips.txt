@@ -1,0 +1,236 @@
+# Batch 1: new trips from an empty map. Aliases, typos, tourist places, round trips, many stops, traps.
+
+@ new-trip, hinglish
+T Lucknow se Jaipur jaana hai, beech mein Agra
+O set lucknow agra jaipur
+M Lucknow=lucknow; Jaipur=jaipur; Agra=agra
+
+@ new-trip, english
+T Plan a drive from Delhi to Amritsar
+O set delhi amritsar
+M Delhi=delhi; Amritsar=amritsar
+
+@ new-trip, english, alias
+T Bombay to Goa road trip please
+O set mumbai panaji
+M Bombay=mumbai; Goa=panaji
+
+@ new-trip, hinglish, alias
+T Madras se Pondy tak gaadi se jaana hai
+O set chennai puducherry
+M Madras=chennai; Pondy=puducherry
+
+@ new-trip, hinglish, typo
+T Banglore se Mysore jaana hai
+O set bengaluru mysuru
+M Banglore=bengaluru; Mysore=mysuru
+
+@ new-trip, english, typo, alias
+T Calcutta to Darjiling and then Gangtok
+O set kolkata darjeeling gangtok
+M Calcutta=kolkata; Darjiling=darjeeling; Gangtok=gangtok
+
+@ new-trip, hinglish, tourist
+T Delhi se Kasol jaana hai, raaste mein Chandigarh rukenge
+O set delhi chandigarh kasol
+M Delhi=delhi; Kasol=kasol; Chandigarh=chandigarh
+
+@ new-trip, english, tourist, many-stops
+T Udaipur Rajasthan, then Chittorgarh, Bundi, Kota and finally Sawai Madhopur for Ranthambore
+O set udaipur chittorgarh bundi kota sawai-madhopur
+M Udaipur=udaipur; Chittorgarh=chittorgarh; Bundi=bundi; Kota=kota; Sawai Madhopur=sawai-madhopur; Ranthambore=sawai-madhopur
+
+@ new-trip, hinglish, round-trip
+T Pune se Lonavala aur Mahabaleshwar, phir wapas Pune
+O set pune lonavala mahabaleshwar pune
+M Pune=pune; Lonavala=lonavala; Mahabaleshwar=mahabaleshwar; Pune=pune
+
+@ new-trip, english, round-trip, alias
+T Round trip from Bangalore: Coorg, Wayanad, and back to Bangalore
+O set bengaluru madikeri kalpetta bengaluru
+M Bangalore=bengaluru; Coorg=madikeri; Wayanad=kalpetta; Bangalore=bengaluru
+
+@ new-trip, hinglish, typo
+T Ahmdabad se Udaipur Rajasthan wala, wahan se Jodhpure
+O set ahmedabad udaipur jodhpur
+M Ahmdabad=ahmedabad; Udaipur=udaipur; Jodhpure=jodhpur
+
+@ new-trip, english, tourist, many-stops, alias
+T Kerala trip: Cochin, Munnar, Thekkady side Kumily, Alleppey and end at Trivandrum
+O set kochi munnar kumily alappuzha thiruvananthapuram
+M Cochin=kochi; Munnar=munnar; Thekkady=kumily; Kumily=kumily; Alleppey=alappuzha; Trivandrum=thiruvananthapuram
+
+@ new-trip, hinglish, alias
+T Kashi se Prayagraj aur phir Ayodhya
+O set varanasi prayagraj ayodhya
+M Kashi=varanasi; Prayagraj=prayagraj; Ayodhya=ayodhya
+
+@ new-trip, english, trap-word
+T We had kachori and puri for breakfast, now plan Lucknow to Varanasi
+O set lucknow varanasi
+M Lucknow=lucknow; Varanasi=varanasi
+
+@ new-trip, hinglish, trap-word
+T Chennai mein idli sambhar khaake Madurai nikalna hai
+O set chennai madurai
+M Chennai=chennai; Madurai=madurai
+
+@ new-trip, hinglish, trap-word
+T Pehle khana khayenge phir Jaipur se Ajmer aur Pushkar chalenge
+O set jaipur ajmer pushkar
+M Jaipur=jaipur; Ajmer=ajmer; Pushkar=pushkar
+
+@ new-trip, english, tourist
+T Hampi to Gokarna drive
+O set hampi gokarna
+M Hampi=hampi; Gokarna=gokarna
+
+@ new-trip, hinglish, typo, tourist
+T Dehradun se Rishikesh, phir Auli aur Badrinath
+O set dehradun rishikesh auli badrinath
+M Dehradun=dehradun; Rishikesh=rishikesh; Auli=auli; Badrinath=badrinath
+
+@ new-trip, english, long, tourist, many-stops
+T So my parents are visiting and they really want to see the temples, we'll start from Chennai, go to Kanchipuram first, then Thanjavur, then Madurai, and end at Rameshwaram if the roads are okay
+O set chennai kanchipuram thanjavur madurai rameswaram
+M Chennai=chennai; Kanchipuram=kanchipuram; Thanjavur=thanjavur; Madurai=madurai; Rameshwaram=rameswaram
+
+@ new-trip, hinglish, long, alias
+T Yaar hum log teen dost hain, Gurgaon se nikalenge subah, pehle Jaipur, phir Jodhpur aur last mein Jaisalmer, desert camp karna hai wahan
+O set gurugram jaipur jodhpur jaisalmer
+M Gurgaon=gurugram; Jaipur=jaipur; Jodhpur=jodhpur; Jaisalmer=jaisalmer
+
+@ new-trip, english, typo
+T Hydrabad to Vijayawada to Vizag
+O set hyderabad vijayawada visakhapatnam
+M Hydrabad=hyderabad; Vijayawada=vijayawada; Vizag=visakhapatnam
+
+@ new-trip, hinglish, tourist, alias
+T Guwahati se Kaziranga, phir Majuli
+O set guwahati kohora majuli
+M Guwahati=guwahati; Kaziranga=kohora; Majuli=majuli
+
+@ new-trip, english, tourist
+T Shillong to Cherrapunji to Dawki
+O set shillong cherrapunji dawki
+M Shillong=shillong; Cherrapunji=cherrapunji; Dawki=dawki
+
+@ new-trip, hinglish, typo
+T Chandigar se Manaali
+O set chandigarh manali
+M Chandigar=chandigarh; Manaali=manali
+
+@ new-trip, english, round-trip
+T Start and end in Ahmedabad, going via Dwarka and Somnath
+O set ahmedabad dwarka somnath ahmedabad
+M Ahmedabad=ahmedabad; Dwarka=dwarka; Somnath=somnath; Ahmedabad=ahmedabad
+
+@ new-trip, hinglish, round-trip, many-stops
+T Indore se Ujjain, Omkareshwar, Maheshwar, Mandu aur wapas Indore aana hai
+O set indore ujjain omkareshwar maheshwar mandu indore
+M Indore=indore; Ujjain=ujjain; Omkareshwar=omkareshwar; Maheshwar=maheshwar; Mandu=mandu; Indore=indore
+
+@ new-trip, english, alias, tourist
+T Baroda to the Statue of Unity
+O set vadodara kevadia
+M Baroda=vadodara; Statue of Unity=kevadia
+
+@ new-trip, hinglish, alias, tourist
+T Bhuj se Rann of Kutch dekhne jaana hai
+O set bhuj dhordo
+M Bhuj=bhuj; Rann of Kutch=dhordo
+
+@ new-trip, english, tourist, many-stops
+T Leh, Nubra side Diskit, then Turtuk, back via Diskit is not needed, end at Hanle and then Leh again
+O set leh diskit turtuk hanle leh
+M Leh=leh; Nubra=diskit; Diskit=diskit; Turtuk=turtuk; Hanle=hanle; Leh=leh
+
+@ new-trip, hinglish, alias
+T Poona se Nashik aur Shirdi
+O set pune nashik shirdi
+M Poona=pune; Nashik=nashik; Shirdi=shirdi
+
+@ new-trip, english, typo
+T Kolkatta to Bhubneshwar to Puri
+O set kolkata bhubaneswar puri
+M Kolkatta=kolkata; Bhubneshwar=bhubaneswar; Puri=puri
+
+@ new-trip, hinglish, tourist
+T Bhopal se Sanchi aur Pachmarhi
+O set bhopal sanchi pachmarhi
+M Bhopal=bhopal; Sanchi=sanchi; Pachmarhi=pachmarhi
+
+@ new-trip, hinglish, typo, long
+T Bhai Jaipr se nikal ke seedha Jaisalmir jaana hai, beech mein ek raat Jodhpur rukna padega kyunki bahut lamba drive hai aur bachche bhi saath hain
+O set jaipur jodhpur jaisalmer
+M Jaipr=jaipur; Jaisalmir=jaisalmer; Jodhpur=jodhpur
+
+@ new-trip, english, alias
+T Gauhati to Shillong
+O set guwahati shillong
+M Gauhati=guwahati; Shillong=shillong
+
+@ new-trip, hinglish, tourist, alias
+T Mcleodganj se Dalhousie aur Khajjiar
+O set mcleod-ganj dalhousie khajjiar
+M Mcleodganj=mcleod-ganj; Dalhousie=dalhousie; Khajjiar=khajjiar
+
+@ new-trip, english, tourist, alias
+T Spiti trip from Shimla: Narkanda, Sangla, Kalpa, then Kaza
+O set shimla narkanda sangla kalpa kaza
+M Spiti=kaza; Shimla=shimla; Narkanda=narkanda; Sangla=sangla; Kalpa=kalpa; Kaza=kaza
+
+@ new-trip, hinglish, trap-word
+T Bahut anand aayega, Mathura se Vrindavan aur Agra chalo
+O set mathura vrindavan agra
+M Mathura=mathura; Vrindavan=vrindavan; Agra=agra
+
+@ new-trip, english, trap-word
+T Zero planning so far, just make it Patna to Bodhgaya
+O set patna bodh-gaya
+M Patna=patna; Bodhgaya=bodh-gaya
+
+@ new-trip, hinglish, many-stops
+T Delhi, Agra, Gwalior, Jhansi, Bhopal, Nagpur tak jaana hai
+O set delhi agra gwalior jhansi bhopal nagpur
+M Delhi=delhi; Agra=agra; Gwalior=gwalior; Jhansi=jhansi; Bhopal=bhopal; Nagpur=nagpur
+
+@ new-trip, english, alias, round-trip
+T Calicut to Ooty and back to Calicut
+O set kozhikode ooty kozhikode
+M Calicut=kozhikode; Ooty=ooty; Calicut=kozhikode
+
+@ new-trip, english, typo
+T Amritsr to Jammu, then Katra
+O set amritsar jammu katra
+M Amritsr=amritsar; Jammu=jammu; Katra=katra
+
+@ new-trip, hinglish, tourist
+T Srinagar se Gulmarg aur phir Pahalgam
+O set srinagar gulmarg pahalgam
+M Srinagar=srinagar; Gulmarg=gulmarg; Pahalgam=pahalgam
+
+@ new-trip, english, long, tourist
+T I want to do the coastal drive I keep seeing on Instagram, starting at Mangalore, then Udupi, Murudeshwar and Gokarna, and finishing at Goa for a few days of beach time
+O set mangaluru udupi murudeshwar gokarna panaji
+M Mangalore=mangaluru; Udupi=udupi; Murudeshwar=murudeshwar; Gokarna=gokarna; Goa=panaji
+
+@ new-trip, hinglish, alias
+T Allahabad se Banaras
+O set prayagraj varanasi
+M Allahabad=prayagraj; Banaras=varanasi
+
+@ new-trip, hinglish, typo
+T Lucknw se Gorakhpur jaana hai
+O set lucknow gorakhpur
+M Lucknw=lucknow; Gorakhpur=gorakhpur
+
+@ new-trip, english, alias, tourist
+T Jim Corbett from Delhi, then Nainital
+O set delhi ramnagar nainital
+M Jim Corbett=ramnagar; Delhi=delhi; Nainital=nainital
+
+@ new-trip, hinglish, tourist, round-trip
+T Mysuru se Ooty, Kodaikanal aur wapas Mysuru
+O set mysuru ooty kodaikanal mysuru
+M Mysuru=mysuru; Ooty=ooty; Kodaikanal=kodaikanal; Mysuru=mysuru

@@ -1,0 +1,303 @@
+# Batch 4: same-name towns, regions (state names), answering a pending question, foreign places.
+
+@ new-trip, same-name, hinglish
+T Delhi se Aurangabad jaana hai
+O ask aurangabad aurangabad-bihar
+M Delhi=delhi; Aurangabad=aurangabad|aurangabad-bihar
+
+@ new-trip, same-name, english
+T Plan Raipur to Bilaspur
+O ask bilaspur bilaspur-himachal-pradesh
+A set raipur bilaspur
+M Raipur=raipur; Bilaspur=bilaspur
+
+@ add, same-name, hinglish
+S lucknow kanpur
+T Kanpur ke baad Hamirpur jodo
+O ask hamirpur hamirpur-himachal-pradesh
+A add hamirpur after kanpur
+M Kanpur=kanpur; Hamirpur=hamirpur
+
+@ add, same-name, english
+S agra jaipur
+T Add Udaipur after Jaipur
+O ask udaipur udaipur-tripura udaipur-himachal-pradesh
+A add udaipur after jaipur
+M Udaipur=udaipur; Jaipur=jaipur
+
+@ new-trip, same-name, hinglish
+T Pratapgarh se Prayagraj
+O ask pratapgarh pratapgarh-uttar-pradesh
+A set pratapgarh-uttar-pradesh prayagraj
+M Pratapgarh=pratapgarh-uttar-pradesh; Prayagraj=prayagraj
+
+@ new-trip, same-name, english
+T Chamba to Dalhousie
+O ask chamba chamba-himachal-pradesh
+A set chamba-himachal-pradesh dalhousie
+M Chamba=chamba-himachal-pradesh; Dalhousie=dalhousie
+
+@ add, same-name, hinglish
+S jodhpur udaipur
+T Jodhpur ke baad Pali rukna hai
+O ask pali-rajasthan pali
+A add pali-rajasthan after jodhpur
+M Jodhpur=jodhpur; Pali=pali-rajasthan
+
+@ new-trip, same-name, english
+T Kolkata to Bishnupur
+O ask bishnupur bishnupur-manipur
+A set kolkata bishnupur
+M Kolkata=kolkata; Bishnupur=bishnupur
+
+@ new-trip, same-name, hinglish
+T Guwahati se Lakhimpur
+O ask lakhimpur north-lakhimpur
+M Guwahati=guwahati; Lakhimpur=lakhimpur|north-lakhimpur
+
+@ add, same-name, english
+S delhi moradabad
+T Add Rampur after Moradabad
+O ask rampur rampur-bushahr
+A add rampur after moradabad
+M Rampur=rampur; Moradabad=moradabad
+
+@ new-trip, same-name, hinglish
+T Lucknow se Fatehpur jaana hai
+O ask fatehpur fatehpur-uttar-pradesh
+A set lucknow fatehpur-uttar-pradesh
+M Lucknow=lucknow; Fatehpur=fatehpur-uttar-pradesh
+
+@ new-trip, same-name, english
+T Gonda to Balrampur
+O ask balrampur balrampur-chhattisgarh
+A set gonda balrampur
+M Gonda=gonda; Balrampur=balrampur
+
+@ new-trip, same-name, hinglish
+T Patna se Aurangabad Bihar wala
+O set patna aurangabad-bihar
+M Patna=patna; Aurangabad=aurangabad-bihar
+
+@ new-trip, same-name, english
+T Mumbai to Aurangabad in Maharashtra, for Ellora
+O set mumbai aurangabad
+A set mumbai aurangabad ellora
+M Mumbai=mumbai; Aurangabad=aurangabad; Ellora=ellora
+
+@ add, same-name, hinglish
+S shimla manali
+T Shimla ke baad Bilaspur Himachal wala add karo
+O add bilaspur-himachal-pradesh after shimla
+M Shimla=shimla; Bilaspur=bilaspur-himachal-pradesh
+
+@ add, same-name, english
+S agartala melaghar
+T Add Udaipur in Tripura at the end
+O add udaipur-tripura end
+M Udaipur=udaipur-tripura
+
+@ new-trip, same-name, hinglish, long
+T Hum Chhattisgarh mein rehte hain, Raipur se nikal ke Bilaspur jaana hai jo hamare state mein hai, wahan se Korba
+O set raipur bilaspur korba
+M Raipur=raipur; Bilaspur=bilaspur; Korba=korba
+
+@ new-trip, region, hinglish
+T Delhi se Himachal ghumna hai
+O ask shimla solan dharamshala nahan
+M Delhi=delhi; Himachal=shimla|solan|dharamshala|nahan
+
+@ new-trip, region, english
+T I want to drive around Rajasthan starting from Delhi
+O ask jaipur sri-ganganagar jodhpur kota
+M Delhi=delhi; Rajasthan=jaipur|sri-ganganagar|jodhpur|kota
+
+@ new-trip, region, hinglish
+T Kerala jaana hai Bangalore se
+O ask thiruvananthapuram kozhikode kollam thrissur
+M Kerala=thiruvananthapuram|kozhikode|kollam|thrissur; Bangalore=bengaluru
+
+@ add, region, english
+S delhi haridwar
+T Add some place in Uttarakhand after Haridwar
+O ask dehradun haldwani roorkee
+M Uttarakhand=dehradun|haridwar|haldwani|roorkee; Haridwar=haridwar
+
+@ new-trip, region, hinglish
+T Siliguri se Sikkim
+O ask gangtok namchi mangan yuksom
+M Siliguri=siliguri; Sikkim=gangtok|namchi|mangan|yuksom
+
+@ new-trip, region, english
+T Delhi to Punjab
+O ask hoshiarpur fazilka ludhiana amritsar
+M Delhi=delhi; Punjab=hoshiarpur|fazilka|ludhiana|amritsar
+
+@ add, region, hinglish
+S mumbai pune
+T End mein Gujarat bhi kar do
+O ask gandhinagar surat morbi anand
+M Gujarat=gandhinagar|surat|morbi|anand
+
+@ new-trip, region, english, alias
+T Delhi to Kashmir
+O set delhi srinagar
+A ask srinagar
+M Delhi=delhi; Kashmir=srinagar
+
+@ new-trip, region, hinglish, alias
+T Manali se Ladakh
+O set manali leh
+M Manali=manali; Ladakh=leh
+
+@ answer, same-name, hinglish
+S agra jaipur
+Q Jaipur ke baad kaunsa Udaipur jodna hai? = udaipur, udaipur-tripura, udaipur-himachal-pradesh
+T Rajasthan wala
+O add udaipur after jaipur
+
+@ answer, same-name, english
+Q Which Aurangabad do you want to drive to from Delhi? = aurangabad, aurangabad-bihar
+T the one in Bihar
+O set delhi aurangabad-bihar
+
+@ answer, same-name, hinglish
+S lucknow kanpur
+Q Kanpur ke baad kaunsa Hamirpur? = hamirpur, hamirpur-himachal-pradesh
+T UP wala
+O add hamirpur after kanpur
+
+@ answer, same-name, english
+Q Raipur to which Bilaspur? = bilaspur, bilaspur-himachal-pradesh
+K choice
+T Bilaspur, Chhattisgarh
+O set raipur bilaspur
+M Bilaspur=bilaspur
+
+@ answer, same-name, hinglish
+S jodhpur udaipur
+Q Jodhpur ke baad kaunsa Pali rukna hai? = pali-rajasthan, pali
+K choice
+T Pali, Rajasthan
+O add pali-rajasthan after jodhpur
+M Pali=pali-rajasthan
+
+@ answer, region, hinglish
+Q Delhi se Himachal mein kahan jaana hai? = shimla, solan, dharamshala, nahan
+T Shimla
+O set delhi shimla
+M Shimla=shimla
+
+@ answer, region, english
+Q Where in Rajasthan should the trip from Delhi go? = jaipur, sri-ganganagar, jodhpur, kota
+T Jodhpur please
+O set delhi jodhpur
+M Jodhpur=jodhpur
+
+@ answer, region, english
+S mumbai pune
+Q Which place in Gujarat should be added at the end? = gandhinagar, surat, morbi, anand
+K choice
+T Surat, Gujarat
+O add surat end
+M Surat=surat
+
+@ answer, same-name, hinglish
+Q Patna se kaunsa Aurangabad? = aurangabad, aurangabad-bihar
+T dusra wala
+O set patna aurangabad-bihar
+
+@ answer, same-name, english
+S agartala melaghar
+Q Which Udaipur should I add at the end? = udaipur, udaipur-tripura, udaipur-himachal-pradesh
+T the Tripura one obviously, we're in Agartala
+O add udaipur-tripura end
+M Agartala=agartala
+
+@ answer, region, hinglish, long
+Q Siliguri ke baad Sikkim mein kahan jaana hai? = gangtok, namchi, mangan, yuksom
+T Gangtok jaayenge, wahan hamare chacha rehte hain aur unke ghar pe do din rukenge, phir aage dekhenge
+O set siliguri gangtok
+M Gangtok=gangtok
+
+@ answer, same-name, english
+S delhi moradabad
+Q Which Rampur should come after Moradabad? = rampur, rampur-bushahr
+T Rampur in UP, near Moradabad
+O add rampur after moradabad
+M Rampur=rampur; Moradabad=moradabad
+
+@ answer, same-name, hinglish
+Q Gonda se kaunsa Balrampur? = balrampur, balrampur-chhattisgarh
+K choice
+T Balrampur, Uttar Pradesh
+O set gonda balrampur
+M Balrampur=balrampur
+
+@ answer, same-name, english, typo
+S agra jaipur
+Q Which Udaipur after Jaipur? = udaipur, udaipur-tripura, udaipur-himachal-pradesh
+T Udaipr in Rajastan
+O add udaipur after jaipur
+M Udaipr=udaipur
+
+@ new-trip, foreign, hinglish
+T Delhi se Kathmandu jaana hai
+O none
+M Delhi=delhi
+
+@ new-trip, foreign, english
+T Drive from Kolkata to Dhaka
+O none
+M Kolkata=kolkata
+
+@ add, foreign, hinglish
+S amritsar jalandhar
+T Amritsar se pehle Lahore bhi daal do
+O none
+M Amritsar=amritsar
+
+@ new-trip, foreign, english
+T Chennai to Colombo road trip
+O none
+M Chennai=chennai
+
+@ add, foreign, english
+S siliguri gangtok
+T Add Thimphu at the end
+O none
+
+@ new-trip, foreign, hinglish
+T Jaisalmer se Pokhara
+O none
+M Jaisalmer=jaisalmer
+
+@ new-trip, foreign, english
+T Mumbai to Dubai by road
+O none
+M Mumbai=mumbai
+
+@ compound, foreign, remove, hinglish
+S delhi agra jaipur
+T Agra hata do aur Karachi daal do
+O rm agra
+A none
+M Agra=agra
+
+@ compound, foreign, add, english
+S kolkata siliguri
+T Add Darjeeling after Siliguri and then Paro in Bhutan
+O add darjeeling after siliguri
+A none
+M Darjeeling=darjeeling; Siliguri=siliguri
+
+@ foreign, english, long, new-trip
+T We're planning to drive all the way from Delhi to Bangkok next winter through the north east and Myanmar, can you map it?
+O none
+M Delhi=delhi
+
+@ foreign, hinglish, add
+S lucknow gorakhpur
+T Gorakhpur ke baad Lumbini Nepal
+O none
+M Gorakhpur=gorakhpur

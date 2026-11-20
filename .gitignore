@@ -1,0 +1,17 @@
+.env
+.venv/
+__pycache__/
+.DS_Store
+.pytest_cache/
+traces.db
+# GeoNames India dump (70 MB), only needed to rebuild data/places.json:
+# download https://download.geonames.org/export/dump/IN.zip and unzip into raw_data/IN/
+raw_data/IN/IN.txt
+# Natural Earth 10m roads (54 MB), only needed to rebuild data/roads.json and static/roads.geojson:
+# download https://naciscdn.org/naturalearth/10m/cultural/ne_10m_roads.zip and unzip into raw_data/ne_10m_roads/
+raw_data/ne_10m_roads/
+# download https://download.geofabrik.de/asia/india-latest.osm.pbf into raw_data/osm/ (1.7 GB; for python -m app.geo build)
+raw_data/osm/
+
+# Pipeline Explorer: a local tool for understanding the code, not part of the app
+pipeline-explorer/

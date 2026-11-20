@@ -1,0 +1,383 @@
+{
+ "meta": {
+  "date": "2026-11-21 02:04",
+  "commit": "256a261",
+  "dirty": true,
+  "turns": 122,
+  "sessions": 23,
+  "prompts": [
+   "orchestrator_v20",
+   "orchestrator_v21",
+   "orchestrator_v22",
+   "orchestrator_v23",
+   "orchestrator_v24",
+   "orchestrator_v25"
+  ]
+ },
+ "latency": {
+  "groq/openai/gpt-oss-120b": {
+   "turns": 12,
+   "steps_mean": 2.4,
+   "steps_hist": {
+    "1": 2,
+    "2": 5,
+    "3": 3,
+    "4": 2
+   },
+   "turn_s": {
+    "n": 12,
+    "p50": 1.35595,
+    "p50_ci": [
+     0.77395,
+     4.20495
+    ],
+    "p90": 17.775860000000005,
+    "p95": 42.17051999999997,
+    "max": 70.4128
+   },
+   "llm_step_ms": {
+    "n": 29,
+    "p50": 453.1,
+    "p50_ci": [
+     299.4,
+     701.1
+    ],
+    "p90": 13937.06,
+    "p95": 21761.419999999973,
+    "max": 28864.5
+   },
+   "share_llm": 0.981,
+   "share_tools": 0.018,
+   "share_other": 0.001
+  },
+  "groq/qwen/qwen3.8-27b": {
+   "turns": 2,
+   "steps_mean": 2.5,
+   "steps_hist": {
+    "2": 1,
+    "3": 1
+   },
+   "turn_s": {
+    "n": 2,
+    "p50": 46.24725000000001,
+    "p50_ci": [
+     24.680400000000002,
+     67.81410000000001
+    ],
+    "p90": 63.50073000000001,
+    "p95": 65.65741500000001,
+    "max": 67.81410000000001
+   },
+   "llm_step_ms": {
+    "n": 5,
+    "p50": 24155.0,
+    "p50_ci": [
+     519.9,
+     31556.2
+    ],
+    "p90": 30996.2,
+    "p95": 31276.2,
+    "max": 31556.2
+   },
+   "share_llm": 0.994,
+   "share_tools": 0.005,
+   "share_other": 0.0
+  },
+  "openai/gpt-5.4-nano": {
+   "turns": 69,
+   "steps_mean": 2.5,
+   "steps_hist": {
+    "1": 13,
+    "2": 20,
+    "3": 28,
+    "4": 7,
+    "6": 1
+   },
+   "turn_s": {
+    "n": 69,
+    "p50": 8.3145,
+    "p50_ci": [
+     7.172899999999999,
+     9.145299999999999
+    ],
+    "p90": 12.399880000000001,
+    "p95": 13.91262,
+    "max": 17.6132
+   },
+   "llm_step_ms": {
+    "n": 171,
+    "p50": 2818.4,
+    "p50_ci": [
+     2689.0,
+     3071.4
+    ],
+    "p90": 4665.5,
+    "p95": 5751.7,
+    "max": 7988.2
+   },
+   "share_llm": 0.973,
+   "share_tools": 0.026,
+   "share_other": 0.001
+  },
+  "sarvam/deepseekv4.1-flash-1017": {
+   "turns": 31,
+   "steps_mean": 2.3,
+   "steps_hist": {
+    "1": 6,
+    "2": 14,
+    "3": 8,
+    "4": 2,
+    "5": 1
+   },
+   "turn_s": {
+    "n": 31,
+    "p50": 4.0754,
+    "p50_ci": [
+     2.7594000000000003,
+     5.2919
+    ],
+    "p90": 43.1858,
+    "p95": 51.206199999999995,
+    "max": 57.5751
+   },
+   "llm_step_ms": {
+    "n": 71,
+    "p50": 1171.7,
+    "p50_ci": [
+     1077.0,
+     1434.1
+    ],
+    "p90": 20180.4,
+    "p95": 24918.4,
+    "max": 31607.8
+   },
+   "share_llm": 0.981,
+   "share_tools": 0.018,
+   "share_other": 0.001
+  },
+  "sarvam/gemma4": {
+   "turns": 8,
+   "steps_mean": 2.4,
+   "steps_hist": {
+    "2": 5,
+    "3": 3
+   },
+   "turn_s": {
+    "n": 8,
+    "p50": 3.2952500000000002,
+    "p50_ci": [
+     2.1216,
+     3.6493
+    ],
+    "p90": 3.9475700000000002,
+    "p95": 4.150535,
+    "max": 4.3535
+   },
+   "llm_step_ms": {
+    "n": 19,
+    "p50": 1158.6,
+    "p50_ci": [
+     713.7,
+     1476.7
+    ],
+    "p90": 2326.02,
+    "p95": 2503.249999999998,
+    "max": 3179.6
+   },
+   "share_llm": 0.949,
+   "share_tools": 0.046,
+   "share_other": 0.005
+  }
+ },
+ "first_step": {
+  "groq/openai/gpt-oss-120b": {
+   "turns": 12,
+   "resolve_place": 0.583,
+   "edit": 0.25,
+   "ask_user": 0.083,
+   "no tool call (text)": 0.083
+  },
+  "groq/qwen/qwen3.8-27b": {
+   "turns": 2,
+   "edit": 0.5,
+   "resolve_place": 0.5
+  },
+  "openai/gpt-5.4-nano": {
+   "turns": 69,
+   "resolve_place": 0.696,
+   "suggest_nearby_places": 0.116,
+   "edit": 0.087,
+   "reply": 0.043,
+   "suggest_enroute_places": 0.043,
+   "ask_user": 0.014
+  },
+  "sarvam/deepseekv4.1-flash-1017": {
+   "turns": 31,
+   "resolve_place": 0.484,
+   "edit": 0.323,
+   "no tool call (text)": 0.065,
+   "suggest_enroute_places": 0.065,
+   "suggest_nearby_places": 0.032,
+   "ask_user": 0.032
+  },
+  "sarvam/gemma4": {
+   "turns": 8,
+   "resolve_place": 0.875,
+   "edit": 0.125
+  }
+ },
+ "edits_per_step": {
+  "groq/openai/gpt-oss-120b": {
+   "edit_calls_per_edit_step": {
+    "1": 10
+   },
+   "edit_steps_per_edit_turn": {
+    "1": 6,
+    "2": 2
+   }
+  },
+  "groq/qwen/qwen3.8-27b": {
+   "edit_calls_per_edit_step": {
+    "1": 2
+   },
+   "edit_steps_per_edit_turn": {
+    "1": 2
+   }
+  },
+  "openai/gpt-5.4-nano": {
+   "edit_calls_per_edit_step": {
+    "1": 60,
+    "2": 1
+   },
+   "edit_steps_per_edit_turn": {
+    "1": 43,
+    "2": 7,
+    "4": 1
+   }
+  },
+  "sarvam/deepseekv4.1-flash-1017": {
+   "edit_calls_per_edit_step": {
+    "1": 22,
+    "2": 3
+   },
+   "edit_steps_per_edit_turn": {
+    "1": 18,
+    "2": 2,
+    "3": 1
+   }
+  },
+  "sarvam/gemma4": {
+   "edit_calls_per_edit_step": {
+    "1": 3,
+    "2": 1
+   },
+   "edit_steps_per_edit_turn": {
+    "1": 4
+   }
+  }
+ },
+ "tool_time": {
+  "resolve_place": {
+   "calls": 78,
+   "p50_ms": 0.3,
+   "p95_ms": 4.2
+  },
+  "add_stop": {
+   "calls": 49,
+   "p50_ms": 259.1,
+   "p95_ms": 854.2
+  },
+  "set_route": {
+   "calls": 30,
+   "p50_ms": 155.7,
+   "p95_ms": 559.3
+  },
+  "ask_user": {
+   "calls": 14,
+   "p50_ms": 0.8,
+   "p95_ms": 3.1
+  },
+  "remove_stop": {
+   "calls": 13,
+   "p50_ms": 2.4,
+   "p95_ms": 347.7
+  },
+  "suggest_nearby_places": {
+   "calls": 11,
+   "p50_ms": 0.8,
+   "p95_ms": 3.0
+  },
+  "suggest_enroute_places": {
+   "calls": 6,
+   "p50_ms": 142.7,
+   "p95_ms": 213.1
+  },
+  "reply": {
+   "calls": 5,
+   "p50_ms": 0.1,
+   "p95_ms": 0.2
+  },
+  "undo": {
+   "calls": 1,
+   "p50_ms": 3.3,
+   "p95_ms": 3.3
+  }
+ },
+ "stt_chips": {
+  "stt": {
+   "n": 151,
+   "p50": 475.3,
+   "p50_ci": [
+    440.4,
+    487.5
+   ],
+   "p90": 948.8,
+   "p95": 1063.5,
+   "max": 1464.4,
+   "bytes_p50": 52460.0
+  },
+  "followup_chips_llm": {
+   "n": 121,
+   "p50": 2221.1,
+   "p50_ci": [
+    2098.2,
+    2311.8
+   ],
+   "p90": 3335.7,
+   "p95": 3558.9,
+   "max": 25458.4
+  }
+ },
+ "tokens": {
+  "o200k": {
+   "system_prompt_orchestrator_v25": 1946,
+   "tool_schemas": 1399,
+   "turn_input_json_p50_300_examples": 124.0,
+   "turn_input_json_p95_300_examples": 230.10000000000002,
+   "history_last3_turns_p50_real": 47.0,
+   "history_last3_turns_p95_real": 97.89999999999998
+  },
+  "provider_reported_step1": {
+   "groq/openai/gpt-oss-120b": {
+    "input_tokens_p50": 2982.0,
+    "cached_share": 0.541
+   },
+   "groq/qwen/qwen3.8-27b": {
+    "input_tokens_p50": 3487.5,
+    "cached_share": 0.0
+   },
+   "openai/gpt-5.4-nano": {
+    "input_tokens_p50": 2699.0,
+    "cached_share": 0.462
+   },
+   "sarvam/deepseekv4.1-flash-1017": {
+    "input_tokens_p50": 3627.0,
+    "cached_share": 0.869
+   },
+   "sarvam/gemma4": {
+    "input_tokens_p50": 3329.5,
+    "cached_share": 0.687
+   }
+  }
+ }
+}

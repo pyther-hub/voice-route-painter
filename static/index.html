@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Voice Route Painter</title>
+  <link rel="icon" href="data:,">  <!-- no favicon file: stops a 404 in the console -->
+  <!-- Leaflet (the map library), saved in static/ instead of loaded from a CDN: no third-party server on the
+       page's critical path. Version 1.9.4, unchanged. -->
+  <link rel="stylesheet" href="leaflet.css">
+  <link rel="stylesheet" href="style.css?v=21">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="dot"></span>Voice Route Painter</div>
+    <div class="topbar-right">
+      <!-- Which AI answers: a toggle between providers (OpenAI | Sarvam | Groq), then that provider's models.
+           Both are filled by app.js from the list the server sends. -->
+      <span id="llm" class="llm" hidden>
+        <span id="llm-providers" class="seg" role="radiogroup" aria-label="AI provider"></span>
+        <select id="llm-model" class="llm-model" aria-label="Model"></select>
+      </span>
+      <!-- Owner-only extras: shown on localhost, or in a browser where the trace key was saved (app.js) -->
+      <span id="dev" class="dev" hidden>
+        <button id="session" class="session" title="Copy session id" hidden></button>
+        <span id="tokens" class="tokens" title="LLM tokens used in this session">0 tokens</span>
+        <a id="trace-link" class="trace-link disabled" target="_blank" rel="noopener" title="No turn yet">Trace ↗</a>
+      </span>
+      <span id="status" class="status">Ready</span>
+    </div>
+  </header>
+
+  <!-- Fixed-height status area, so the map never moves: line 1 = what you said,
+       below it = the agent's live steps while it works, then its reply (same spot, up to 2 lines). -->
+  <section class="headline">
+    <p id="heard" class="heard"></p>
+    <div class="slot">
+      <div id="activity" class="activity" aria-hidden="true"></div>
+      <!-- aria-live: screen readers read the reply out when it changes -->
+      <h1 id="message" aria-live="polite"></h1>
+    </div>
+  </section>
+
+  <main class="layout">
+    <div class="left">
+      <!-- Trip bar: the trip as one straight line, start to end, stops spaced by road km (filled by app.js) -->
+      <div id="tripbar" class="tripbar"></div>
+      <div class="map-card">
+        <div id="map"></div>
+        <!-- Question card: shown when the agent asks something; one button per option -->
+        <div id="ask" class="ask" hidden></div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <div id="followups" class="followups" hidden></div>
+      <div id="suggest" class="card suggest" hidden></div>
+      <!-- Example sentences, shown only while there is no trip: one click sends it like typed text -->
+      <div id="examples" class="card examples" hidden></div>
+      <!-- Undo / Redo / Share / Google Maps (wired up in app.js) -->
+      <div id="tools" class="tools" hidden>
+        <button id="undo" title="Undo the last change">↶ Undo</button>
+        <button id="redo" title="Redo">↷ Redo</button>
+        <button id="share" title="Copy a link to this trip">🔗 Share</button>
+        <a id="gmaps" class="disabled" target="_blank" rel="noopener" title="Driving directions in Google Maps">Google Maps ↗</a>
+      </div>
+      <div id="stops" class="card list"></div>
+      <p class="footnote">Distances follow India’s main roads (OpenStreetMap); driving times are estimates.</p>
+    </aside>
+  </main>
+
+  <footer class="inputbar">
+    <input id="text" type="text" aria-label="Describe your trip" maxlength="300" autocomplete="off">
+    <button id="talk" class="talk">🎙 Hold Space</button>
+  </footer>
+
+  <script src="leaflet.js"></script>
+  <script src="app.js?v=35"></script>
+</body>
+</html>

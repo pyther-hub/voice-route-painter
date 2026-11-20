@@ -1,0 +1,301 @@
+# Batch 6: fills the coverage gaps (clear, foreign, region, answer, move, undo, no-edit, long), plus 7-8 stop
+# trips and messages with 4 edits.
+
+@ clear, english
+S delhi jaipur
+T delete the route
+O set
+
+@ clear, hinglish
+S kolkata siliguri darjeeling gangtok
+T kuch nahi chahiye ab, sab hata do
+O set
+
+@ clear, english, many-stops
+S delhi agra gwalior jhansi bhopal nagpur hyderabad
+T Clear all stops please
+O set
+
+@ clear, hinglish, typo
+S chennai puducherry
+T sab kuch clear kardo yaar
+O set
+
+@ clear, english, long
+S mumbai pune satara kolhapur
+T My wife just told me we're going to her parents' place instead this Diwali, so none of this is happening, just remove everything from the map
+O set
+
+@ clear, new-trip, compound, english, alias
+S jaipur ajmer
+T scrap this and do Calcutta to Puri instead
+O set kolkata puri
+M Calcutta=kolkata; Puri=puri
+
+@ clear, new-trip, compound, hinglish, typo
+S lucknow varanasi
+T ye wala chhodo, naya banao Hydrabad se Banglore
+O set hyderabad bengaluru
+M Hydrabad=hyderabad; Banglore=bengaluru
+
+@ clear, hinglish, round-trip
+S jaipur ajmer pushkar jaipur
+T map khaali kar do
+O set
+
+@ clear, english
+S guwahati shillong cherrapunji
+T remove all the stops
+O set
+
+@ clear, undo, hinglish
+S delhi agra
+H delhi agra jaipur
+T poora clear karo
+O set
+
+@ clear, new-trip, compound, english, long, many-stops
+S indore ujjain
+T Okay forget Madhya Pradesh completely, my friends voted for the hills, so start fresh from Delhi to Chandigarh, then Shimla, Narkanda and end at Sarahan
+O set delhi chandigarh shimla narkanda sarahan
+M Delhi=delhi; Chandigarh=chandigarh; Shimla=shimla; Narkanda=narkanda; Sarahan=sarahan
+
+@ clear, hinglish
+S bhopal sanchi
+T reset
+O set
+
+@ foreign, new-trip, english
+T Plan Amritsar to Lahore
+O none
+M Amritsar=amritsar
+
+@ foreign, new-trip, hinglish
+T Siliguri se Kathmandu by road
+O none
+M Siliguri=siliguri
+
+@ foreign, add, english
+S chennai rameswaram
+T add Jaffna after Rameshwaram
+O none
+M Rameshwaram=rameswaram
+
+@ foreign, add, hinglish
+S kolkata siliguri
+T Siliguri ke baad Thimphu aur Paro
+O none
+M Siliguri=siliguri
+
+@ foreign, new-trip, english, long
+T My cousins live in Dhaka and we'd like to drive there from Kolkata and then continue to Chittagong for the beach, can you plan it?
+O none
+M Kolkata=kolkata
+
+@ foreign, new-trip, hinglish
+T Delhi se Islamabad
+O none
+M Delhi=delhi
+
+@ foreign, compound, add, english
+S guwahati shillong
+T Add Dawki after Shillong and then Sylhet across the border
+O add dawki after shillong
+A none
+M Dawki=dawki; Shillong=shillong
+
+@ foreign, new-trip, english
+T Kathmandu to Pokhara
+O none
+
+@ foreign, add, hinglish
+S lucknow gorakhpur
+T end mein Kathmandu
+O none
+
+@ region, new-trip, hinglish
+T Bangalore se Kerala ghoomne jaana hai, kahan kahan jaun?
+O ask thiruvananthapuram kozhikode kollam thrissur
+M Bangalore=bengaluru; Kerala=thiruvananthapuram|kozhikode|kollam|thrissur
+
+@ region, add, english
+S chandigarh shimla
+T Add somewhere in Punjab before Chandigarh
+O ask hoshiarpur fazilka ludhiana amritsar
+M Punjab=hoshiarpur|fazilka|ludhiana|amritsar; Chandigarh=chandigarh
+
+@ region, new-trip, english
+T Hyderabad to somewhere in Himachal
+O ask shimla solan dharamshala nahan
+M Hyderabad=hyderabad; Himachal=shimla|solan|dharamshala|nahan
+
+@ region, new-trip, hinglish
+T Delhi se Uttarakhand
+O ask dehradun haridwar haldwani roorkee
+M Delhi=delhi; Uttarakhand=dehradun|haridwar|haldwani|roorkee
+
+@ region, add, hinglish
+S kolkata siliguri
+T Siliguri ke baad Sikkim bhi
+O ask gangtok namchi mangan yuksom
+M Siliguri=siliguri; Sikkim=gangtok|namchi|mangan|yuksom
+
+@ region, new-trip, english, long
+T We are a group of college friends and we really want to do a desert-and-forts kind of trip in Rajasthan, starting from Ahmedabad, what do you suggest?
+O ask jaipur sri-ganganagar jodhpur kota
+M Rajasthan=jaipur|sri-ganganagar|jodhpur|kota; Ahmedabad=ahmedabad
+
+@ region, new-trip, english
+T Mumbai to Gujarat
+O ask gandhinagar surat morbi anand
+M Mumbai=mumbai; Gujarat=gandhinagar|surat|morbi|anand
+
+@ answer, region, english
+S kolkata siliguri
+Q Which place in Sikkim should come after Siliguri? = gangtok, namchi, mangan, yuksom
+K choice
+T Yuksom, Sikkim
+O add yuksom after siliguri
+M Yuksom=yuksom
+
+@ answer, region, hinglish
+Q Delhi se Uttarakhand mein kahan? = dehradun, haridwar, haldwani, roorkee
+T Haridwar chalo
+O set delhi haridwar
+M Haridwar=haridwar
+
+@ answer, same-name, english
+Q Which Chamba, starting from Pathankot? = chamba, chamba-himachal-pradesh
+T The Himachal one
+O set pathankot chamba-himachal-pradesh
+
+@ answer, same-name, hinglish
+S raipur korba
+Q Raipur ke baad kaunsa Bilaspur? = bilaspur, bilaspur-himachal-pradesh
+T Chhattisgarh wala, obviously
+O add bilaspur after raipur
+
+@ answer, region, english, long
+Q Where in Kerala should the trip from Bangalore go? = thiruvananthapuram, kozhikode, kollam, thrissur
+T Let's go with Kozhikode, my colleague says the food there is amazing and it's the closest from Bangalore anyway
+O set bengaluru kozhikode
+M Kozhikode=kozhikode; Bangalore=bengaluru
+
+@ answer, same-name, hinglish
+S lucknow kanpur
+Q Kanpur ke baad kaunsa Fatehpur? = fatehpur-uttar-pradesh, fatehpur
+K choice
+T Fatehpur, Uttar Pradesh
+O add fatehpur-uttar-pradesh after kanpur
+M Fatehpur=fatehpur-uttar-pradesh
+
+@ move, compound, english, many-stops
+S delhi agra gwalior jhansi khajuraho orchha bhopal
+T Orchha should come before Khajuraho, it's right next to Jhansi
+O rm orchha; add orchha before khajuraho
+M Orchha=orchha; Khajuraho=khajuraho; Jhansi=jhansi
+
+@ move, compound, hinglish
+S mumbai panaji gokarna hampi
+T Hampi ko Goa se pehle karo
+O rm hampi; add hampi before panaji
+M Hampi=hampi; Goa=panaji
+
+@ move, compound, english
+S chennai madurai thanjavur
+T Thanjavur first, Madurai last
+O rm thanjavur; add thanjavur before madurai
+M Thanjavur=thanjavur; Madurai=madurai
+
+@ move, compound, hinglish, many-stops
+S jaipur ajmer jodhpur jaisalmer bikaner mandawa neemrana delhi
+T Bikaner ko Jodhpur se pehle le aao
+O rm bikaner; add bikaner before jodhpur
+M Bikaner=bikaner; Jodhpur=jodhpur
+
+@ move, compound, english, typo
+S lucknow varanasi ayodhya
+T Ayodya before Varanasi
+O rm ayodhya; add ayodhya before varanasi
+M Ayodya=ayodhya; Varanasi=varanasi
+
+@ move, compound, hinglish, long
+S shimla manali kasol kullu
+T Kullu toh Manali ke raaste mein hi aata hai na, toh usko Manali se pehle kar do, warna ulta wapas aana padega
+O rm kullu; add kullu before manali
+M Kullu=kullu; Manali=manali
+
+@ undo, english
+S delhi chandigarh amritsar
+H delhi amritsar
+T go back
+O undo 1
+
+@ undo, hinglish, many-stops
+S mumbai pune satara kolhapur belagavi hubballi dharwad
+H mumbai pune kolhapur
+T pichli 1 change undo karo
+O undo 1
+
+@ undo, english
+S kochi munnar
+H kochi alappuzha / kochi munnar alappuzha
+T undo twice
+O undo 2
+
+@ undo, hinglish, long
+S jaipur udaipur
+H jaipur chittorgarh udaipur
+T Arre maine galti se Chittorgarh hata diya, papa ko wahan ka kila dekhna tha, pichla wala route wapas lao please
+O undo 1
+A add chittorgarh after jaipur
+M Chittorgarh=chittorgarh
+
+@ undo, compound, remove, english
+S delhi agra jaipur ajmer
+H delhi agra jaipur
+T undo that and also remove Agra
+O undo 1; rm agra
+M Agra=agra
+
+@ no-edit, english, long
+S delhi rishikesh
+T Do you know if river rafting in Rishikesh is open in July, or is it closed during the monsoon season like last year?
+O none
+M Rishikesh=rishikesh
+
+@ no-edit, hinglish
+S mumbai lonavala
+T Lonavala mein chikki kahan milegi?
+O none
+M Lonavala=lonavala
+
+@ no-edit, english
+S kolkata puri
+T cool
+O none
+
+@ compound, add, remove, english, many-stops, long
+S delhi agra jaipur
+T Big change: remove Agra, add Mathura and Vrindavan right after Delhi, and after Jaipur add Ajmer so we can see the dargah
+O rm agra; add mathura after delhi; add vrindavan after mathura; add ajmer after jaipur
+M Agra=agra; Mathura=mathura; Vrindavan=vrindavan; Delhi=delhi; Jaipur=jaipur; Ajmer=ajmer
+
+@ compound, add, remove, hinglish, many-stops, long
+S mumbai pune bengaluru
+T Pune hata do, Mumbai ke baad Lonavala aur Mahabaleshwar daalo, aur Bangalore se pehle Hubli bhi rakh do
+O rm pune; add lonavala after mumbai; add mahabaleshwar after lonavala; add hubballi before bengaluru
+M Pune=pune; Mumbai=mumbai; Lonavala=lonavala; Mahabaleshwar=mahabaleshwar; Bangalore=bengaluru; Hubli=hubballi
+
+@ compound, remove, many-stops, english
+S chennai puducherry thanjavur madurai rameswaram kanyakumari thiruvananthapuram kochi
+T Remove Pondicherry, Thanjavur, Rameshwaram and Kochi
+O rm puducherry; rm thanjavur; rm rameswaram; rm kochi
+M Pondicherry=puducherry; Thanjavur=thanjavur; Rameshwaram=rameswaram; Kochi=kochi
+
+@ add, many-stops, hinglish, position
+S delhi agra gwalior jhansi bhopal nagpur hyderabad bengaluru
+T Nagpur aur Hyderabad ke beech Adilabad daal do
+O add adilabad after nagpur
+A add adilabad before hyderabad
+M Nagpur=nagpur; Hyderabad=hyderabad; Adilabad=adilabad

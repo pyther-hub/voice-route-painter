@@ -143,7 +143,7 @@ def main() -> None:
     p.add_argument("--yes", action="store_true", help="really run (calls the LLM APIs, costs money)")
     p.add_argument("--only", nargs="*", help="case ids")
     p.add_argument("--arm", choices=["cheap", "escalated"], help="only one arm")
-    p.add_argument("--model", help="cheap model, an id from app/llm.py MODELS (default: LLM_MODEL or nano)")
+    p.add_argument("--model", help="cheap model, an id from app/llm.py MODELS (default: LLM_MODEL or DeepSeek)")
     a = p.parse_args()
     cases = json.loads(CASES.read_text())
     if a.only:

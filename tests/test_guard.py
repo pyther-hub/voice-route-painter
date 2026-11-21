@@ -1,6 +1,8 @@
 """Product hygiene (app/guard.py): origin check, rate limit, spend cap, trace key."""
 import asyncio
 
+from types import SimpleNamespace
+
 import pytest
 from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
@@ -71,7 +73,8 @@ def test_session_and_daily_budget(monkeypatch):
 
 def test_agent_makes_no_llm_call_when_over_budget(monkeypatch):
     guard.charge("b4", guard.SESSION_BUDGET_USD)
-    monkeypatch.setattr(llm._openai.responses, "create", lambda **kw: pytest.fail("LLM was called"))
+    monkeypatch.setitem(llm._clients, "sarvam", SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(
+        create=lambda **kw: pytest.fail("LLM was called")))))
     assert agent.run_turn("b4", "Delhi se Agra") == guard.OVER_SESSION
 
 

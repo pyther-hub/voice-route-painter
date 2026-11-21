@@ -784,7 +784,7 @@ function drawSession(s) {
   };
 }
 
-// ---- Model switch: a toggle between providers (OpenAI | Sarvam | Groq), plus a picker for that provider's models ----
+// ---- Model switch: a toggle between providers (Sarvam | Groq), plus a picker for that provider's models ----
 // The server sends the list (ui.models: only models whose API key it has) and the one in use (ui.model).
 // The browser only shows them and sends {"type":"model","id"}; the server answers with a new state.
 // The choice is also remembered in this browser (localStorage), so a refresh or reconnect keeps it.

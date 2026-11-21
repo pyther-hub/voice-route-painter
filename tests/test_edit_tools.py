@@ -92,9 +92,17 @@ def test_set_route_clear_and_undo_count():
 # ---------------------------------------------------------------- agent loop (fake LLM)
 
 def _call(name, args, n):
-    return SimpleNamespace(type="function_call", name=name, arguments=json.dumps(args), call_id=f"c{n}",
-                           model_dump=lambda **kw: {"type": "function_call", "name": name,
-                                                    "arguments": json.dumps(args), "call_id": f"c{n}"})
+    """One tool call in Chat Completions shape."""
+    return SimpleNamespace(id=f"c{n}", function=SimpleNamespace(name=name, arguments=json.dumps(args)))
+
+
+class _Msg(SimpleNamespace):
+    def model_dump(self, exclude_none=False):
+        d = {"role": "assistant", "content": self.content,
+             "tool_calls": [{"id": c.id, "type": "function",
+                             "function": {"name": c.function.name, "arguments": c.function.arguments}}
+                            for c in self.tool_calls] if self.tool_calls else None}
+        return {k: v for k, v in d.items() if v is not None}
 
 
 def _fake_llm(monkeypatch, steps):
@@ -102,11 +110,13 @@ def _fake_llm(monkeypatch, steps):
     sent, it = [], iter(steps)
 
     def create(**kw):
-        sent.append(list(kw["input"]))      # a copy: the loop keeps appending
+        sent.append(list(kw["messages"]))      # a copy: the loop keeps appending
         calls = next(it)
-        usage = SimpleNamespace(total_tokens=10, input_tokens=8, output_tokens=2, input_tokens_details=None)
-        return SimpleNamespace(output=calls, output_text="", usage=usage)
-    monkeypatch.setattr(llm._openai.responses, "create", create)
+        usage = SimpleNamespace(prompt_tokens=8, completion_tokens=2, total_tokens=10, prompt_tokens_details=None)
+        return SimpleNamespace(choices=[SimpleNamespace(message=_Msg(content="", tool_calls=calls or None))],
+                               usage=usage)
+    fake = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+    monkeypatch.setitem(llm._clients, "sarvam", fake)
     return sent
 
 

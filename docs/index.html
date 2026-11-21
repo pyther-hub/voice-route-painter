@@ -49,6 +49,60 @@
   .note { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 10px 14px;
           border-radius: 0 8px 8px 0; margin: 14px 0; font-size: .93rem; }
   footer { margin-top: 56px; color: var(--muted); font-size: .88rem; }
+
+  /* flowcharts (How the agent grew) */
+  :root { --c-find: #2563eb; --c-edit: #c2410c; --c-suggest: #15803d; --c-talk: #7c3aed; --c-plan: #be185d; }
+  @media (prefers-color-scheme: dark) {
+    :root { --c-find: #60a5fa; --c-edit: #fb923c; --c-suggest: #4ade80; --c-talk: #a78bfa; --c-plan: #f472b6; }
+  }
+  .tag { display: inline-block; font-size: .75rem; font-weight: 600; padding: 2px 8px; border-radius: 99px;
+         margin-right: 8px; vertical-align: 2px; text-transform: uppercase; letter-spacing: .04em; }
+  .tag.old { background: var(--code); color: var(--muted); }
+  .tag.new { background: var(--accent); color: var(--bg); }
+  .flow { display: flex; flex-direction: column; align-items: center; margin: 12px 0 28px; padding: 22px 16px;
+          background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  .flow.v2 { border-color: var(--accent); }
+  .node { position: relative; width: 100%; max-width: 520px; padding: 10px 14px; text-align: center;
+          background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; font-weight: 600; }
+  .node small { display: block; font-weight: 400; color: var(--muted); font-size: .85rem; line-height: 1.45; }
+  .node small b { color: var(--good); }
+  .node.agent { border-color: var(--accent); background: var(--accent-soft); }
+  .node.big { max-width: 600px; padding: 14px 16px; font-size: 1.1rem; }
+  .node.code { border-style: dashed; border-color: var(--good); }
+  .node.in, .node.out { border-color: var(--muted); }
+  .flow.v1 .node.agent { border-color: var(--muted); background: var(--bg); }
+  .step { position: absolute; top: -10px; right: 10px; font-size: .7rem; font-weight: 600; padding: 1px 7px;
+          border-radius: 99px; background: var(--good); color: var(--bg); }
+  .arrow { width: 2px; height: 20px; margin: 3px 0 10px; background: var(--muted); position: relative; flex: none; }
+  .arrow::after { content: ""; position: absolute; left: -5px; bottom: -8px;
+                  border: 6px solid transparent; border-top-color: var(--muted); }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; width: 100%; max-width: 520px; }
+  .row .node { flex: 1 1 180px; }
+  .chips, .models { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .models { margin: 8px 0; }
+  .models span { font-size: .8rem; font-weight: 500; padding: 2px 9px; border-radius: 99px;
+                 background: var(--card); border: 1px solid var(--line); }
+  .groups { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
+  .grp { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; padding: 10px 12px;
+         background: var(--bg); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 10px; }
+  .grp b { color: var(--c); font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; }
+  .grp code { font-size: .74rem; }
+  .grp.plan { grid-column: 1 / -1; }
+  .grp .sub { width: 100%; padding: 6px 10px; margin: 2px 0; font-weight: 600; font-size: .9rem;
+              border-left: 3px solid var(--c); background: var(--card); border-radius: 0 8px 8px 0; }
+  .grp .sub small { display: block; font-weight: 400; color: var(--muted); font-size: .82rem; }
+  .rails { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; width: 100%;
+           margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line); }
+  .rails div { font-size: .85rem; color: var(--muted); padding: 8px 12px; border: 1px dashed var(--line);
+               border-radius: 8px; }
+  .rails b { display: block; color: var(--fg); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+  .upg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0 8px; }
+  @media (max-width: 640px) { .groups, .upg { grid-template-columns: repeat(2, 1fr); } }
+  .upg div { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+             font-size: .95rem; }
+  .upg span { display: block; color: var(--muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+  .upg s { color: var(--muted); }
+  .upg b { color: var(--accent); }
 </style>
 </head>
 <body>
@@ -65,13 +119,13 @@
     <a href="#routing">Routing</a>
     <a href="#hygiene">Hygiene</a>
     <a href="#results">Results</a>
-    <a href="#limits">Limitations</a>
+    <a href="#evolution">How it grew</a>
     <a href="https://github.com/pyther-hub/voice-route-painter">GitHub</a>
   </nav>
 </header>
 
 <div class="facts">
-  <div class="fact"><b>6</b><span>LLMs, switchable in the UI</span></div>
+  <div class="fact"><b>5</b><span>LLMs, switchable in the UI</span></div>
   <div class="fact"><b>1,063</b><span>Indian places in the list</span></div>
   <div class="fact"><b>118k</b><span>road junctions in the routing graph</span></div>
   <div class="fact"><b>105</b><span>tests passing</span></div>
@@ -82,7 +136,7 @@
   <tr><td>Backend</td><td>Python 3.11, FastAPI, asyncio, Pydantic, SQLite</td></tr>
   <tr><td>Frontend</td><td>Plain HTML, CSS and JavaScript with Leaflet. No framework, no build step.</td></tr>
   <tr><td>Speech</td><td>Sarvam <code>saaras:v4</code> speech-to-text, called from the backend, Roman Hinglish output</td></tr>
-  <tr><td>LLMs</td><td>OpenAI gpt-5.4-nano; Sarvam Gemma 4 and DeepSeek V4.1 Flash; Groq gpt-oss-120b, gpt-oss-20b and Qwen</td></tr>
+  <tr><td>LLMs</td><td>Sarvam DeepSeek V4.1 Flash (default) and Gemma 4; Groq gpt-oss-120b, gpt-oss-20b and Qwen. OpenAI models were tested early on and are no longer used.</td></tr>
   <tr><td>Data</td><td>1,063 places; road graph built from OpenStreetMap</td></tr>
 </table>
 
@@ -159,7 +213,7 @@
   <tr><th>Model</th><th class="n">Step-1 call p50</th><th class="n">Full-turn pass</th><th class="n">Turn p50</th><th class="n">USD / turn</th></tr>
   <tr><td>Sarvam Gemma 4</td><td class="n">0.76 s</td><td class="n">99%</td><td class="n">1.0 s</td><td class="n">0.00115</td></tr>
   <tr class="win"><td>Sarvam DeepSeek V4.1 Flash</td><td class="n">0.93 s</td><td class="n">98%</td><td class="n">2.09 s</td><td class="n">0.00016</td></tr>
-  <tr><td>OpenAI gpt-5.4-nano</td><td class="n">2.63 s</td><td class="n">96%</td><td class="n">4.86 s</td><td class="n">0.00046</td></tr>
+  <tr><td>OpenAI gpt-5.4-nano <small>(tested, removed from the app)</small></td><td class="n">2.63 s</td><td class="n">96%</td><td class="n">4.86 s</td><td class="n">0.00046</td></tr>
   <tr><td>Groq gpt-oss-120b</td><td class="n">0.41 s</td><td class="n">51 of 55 answered</td><td class="n">1.19 s</td><td class="n">0.00079</td></tr>
 </table></div>
 <div class="note">Groq's plan caps tokens per day, so only 55, 27 and 9 of 100 turns got an answer on its three models. Their pass rates are not comparable with the others.</div>
@@ -171,14 +225,69 @@
   <li>Default to DeepSeek for cost, with Gemma as the fast option.</li>
 </ul>
 
-<h2 id="limits">Limitations</h2>
-<ul>
-  <li>Each experiment arm ran once, so LLM run-to-run noise is not measured.</li>
-  <li>exp-01 and exp-02 used DeepSeek only.</li>
-  <li>The Groq comparison is incomplete because of its daily token cap.</li>
-  <li>No accounts or saved trips.</li>
-  <li>Not yet deployed over HTTPS.</li>
-</ul>
+<h2 id="evolution">How the agent grew</h2>
+<p>The goal never changed: turn a sentence into a road trip on the map. What changed is everything around the model.</p>
+
+<h3><span class="tag old">Version 1</span> One agent, four tools</h3>
+<div class="flow v1">
+  <div class="node">Typed text<small>"Lucknow se Jaipur, beech mein Agra"</small></div>
+  <div class="arrow"></div>
+  <div class="node agent">Orchestrator<small>gpt-5.4-nano at the time · up to 6 steps</small></div>
+  <div class="arrow"></div>
+  <div class="node">Gateway<small>validate · run · trace</small></div>
+  <div class="arrow"></div>
+  <div class="chips">
+    <code>resolve_place</code><code>set_stops</code><code>undo</code><code>ask_user</code>
+  </div>
+  <div class="arrow"></div>
+  <div class="node">Trip on the map<small>straight-line distances</small></div>
+</div>
+
+<h3><span class="tag new">Today · prompt v29</span> An orchestrator that calls in a frontier planner</h3>
+<div class="flow v2">
+  <div class="row">
+    <div class="node in">🎙 Hold Space<small>Sarvam STT · language detected</small></div>
+    <div class="node in">⌨ Text box<small>same pipeline</small></div>
+  </div>
+  <div class="arrow"></div>
+  <div class="node code"><span class="step">no LLM</span>Code finds the places<small>exact names and aliases from 1,063 places, looked up before the model runs<br><b>−0.57 LLM steps per turn</b> (exp-01)</small></div>
+  <div class="arrow"></div>
+  <div class="node agent big">Orchestrator<small>fast, cheap model, switchable live</small>
+    <div class="models"><span>DeepSeek V4.1 Flash</span><span>Gemma 4</span><span>gpt-oss-120b</span><span>gpt-oss-20b</span><span>Qwen</span></div>
+    <small>goal + tools, no scripted flow · spend cap checked before every step</small>
+  </div>
+  <div class="arrow"></div>
+  <div class="node">Gateway<small>validates arguments · enforces limits · records a span</small></div>
+  <div class="arrow"></div>
+  <div class="groups">
+    <div class="grp" style="--c: var(--c-find)"><b>Find</b><code>resolve_place</code></div>
+    <div class="grp" style="--c: var(--c-edit)"><b>Edit</b><code>set_route</code><code>add_stop</code><code>remove_stop</code><code>undo</code></div>
+    <div class="grp" style="--c: var(--c-suggest)"><b>Suggest</b><code>suggest_<wbr>enroute_<wbr>places</code><code>suggest_<wbr>nearby_<wbr>places</code></div>
+    <div class="grp" style="--c: var(--c-talk)"><b>Talk</b><code>ask_user</code><code>reply</code></div>
+    <div class="grp plan" style="--c: var(--c-plan)"><b>Plan</b><code>plan_with_frontier</code>
+      <div class="sub">↳ Frontier planner<small>Gemma 4 plans a whole trip or compares two routes, shown as a proposal card</small></div>
+      <code>accept_proposal</code><code>dismiss_proposal</code></div>
+  </div>
+  <div class="arrow"></div>
+  <div class="node">One write path<small><code>update_state()</code> · undo and redo · A* on 118k road junctions from OpenStreetMap</small></div>
+  <div class="arrow"></div>
+  <div class="node out">Full state over one WebSocket<small>road route, pins, suggestion and proposal cards, follow-up chips</small></div>
+  <div class="rails">
+    <div><b>Tracing</b>every STT, LLM and tool call</div>
+    <div><b>Guardrails</b>rate limits · USD spend caps · origin check · ≤ 2 stops the user never named</div>
+    <div><b>Clicks skip the LLM</b>undo · redo · remove · add a card · shared links</div>
+  </div>
+</div>
+
+<h3>What changed</h3>
+<div class="upg">
+  <div><span>Tools</span><s>4</s> → <b>12</b></div>
+  <div><span>Models</span><s>1</s> → <b>6 + planner</b></div>
+  <div><span>Input</span><s>text</s> → <b>voice + text</b></div>
+  <div><span>Distances</span><s>straight line</s> → <b>real roads</b></div>
+  <div><span>Prompt</span><s>v1</s> → <b>v29</b></div>
+  <div><span>Testing</span><s>none</s> → <b>evals + 3 experiments</b></div>
+</div>
 
 <h2>What's next</h2>
 <p>Repeat each eval three times, export traces as OpenTelemetry, build a spoken place-name speech test, deploy, and add end-of-speech detection.</p>

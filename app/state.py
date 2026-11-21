@@ -143,7 +143,7 @@ class Trip(BaseModel):
 
 class ModelChoice(BaseModel):
     id: str                              # "sarvam/gemma4"
-    provider: str                        # "openai" | "sarvam"
+    provider: str                        # "sarvam" | "groq"
     provider_label: str                  # "Sarvam"
     label: str                           # "Gemma 4 31B"
     note: str                            # price, shown as a tooltip

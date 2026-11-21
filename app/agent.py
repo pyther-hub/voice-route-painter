@@ -2,7 +2,7 @@
 
     reply = run_turn(session_id, "Lucknow se Jaipur jaana hai, beech mein Agra")
 
-Each step = one LLM call to the session's model (app/llm.py: OpenAI or Sarvam). Tool calls go through
+Each step = one LLM call to the session's model (app/llm.py: Sarvam or Groq). Tool calls go through
 tools.run_tool(). The turn ends when the model stops calling tools (after its edits; the headline is the
 code-written edit lines), when it calls ask_user or reply, or when a limit is hit.
 
@@ -188,7 +188,7 @@ FOLLOWUP_PROMPT = (
     "Use the language of the user's last message (English, or Hinglish in Latin script). Do not repeat what the "
     "reply already did. One per line, no numbering, no quotes.")
 MAX_FOLLOWUPS = 3
-FOLLOWUP_MAX_OUT = {"openai": 200, "sarvam": 1000}   # a reasoning model spends part of it thinking
+FOLLOWUP_MAX_OUT = {"sarvam": 1000, "groq": 1000}   # a reasoning model spends part of it thinking
 
 
 def followups(session_id: str, text: str, input_no: int) -> None:

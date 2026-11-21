@@ -11,7 +11,7 @@ Protocol (matches static/app.js):
     browser -> server   {"type": "undo"} / {"type": "redo"}   (buttons; no agent call)
     browser -> server   {"type": "load", "ids": ["jammu", "delhi"]}   (a shared #trip= link was opened)
     browser -> server   {"type": "dismiss", "pick": 0}   (skip a suggestion card: removed, never suggested again)
-    browser -> server   {"type": "model", "id": "sarvam/gemma4"}   (the OpenAI ⇄ Sarvam switch / model picker: the
+    browser -> server   {"type": "model", "id": "sarvam/gemma4"}   (the Sarvam ⇄ Groq switch / model picker: the
                         next turn uses it; no agent call)
     browser -> server   {"type": "audio", "mime": "audio/webm", "data": "<base64>"}   (hold Space, release)
                         the server turns the audio into text with Sarvam (app/stt.py), shows it as

@@ -38,7 +38,6 @@ def sarvam(monkeypatch):
         return replies.pop(0)
     fake = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
     monkeypatch.setitem(llm._clients, "sarvam", fake)
-    monkeypatch.setattr(llm._openai.responses, "create", lambda **kw: pytest.fail("OpenAI was called"))
     return sent, replies
 
 
@@ -62,7 +61,7 @@ def test_step_parses_tool_calls_and_usage(sarvam):
 def test_cost_converts_rupees():
     usage = {"input": 1_000_000, "cached": 0, "output": 1_000_000}
     assert llm.cost_usd(GEMMA, usage) == pytest.approx((35 + 90) / llm.INR_PER_USD)
-    assert llm.cost_usd("openai/gpt-5.4-nano", usage) == pytest.approx(1.45)
+    assert llm.cost_usd("groq/openai/gpt-oss-120b", usage) == pytest.approx(0.15 + 0.60)
 
 
 def test_turn_on_sarvam_edits_the_trip(sarvam):
@@ -95,9 +94,8 @@ def test_model_click_switches_without_an_llm_call(sarvam, monkeypatch):
 
 def test_models_without_a_key_are_not_offered(monkeypatch):
     monkeypatch.delenv("SARVAM_API_KEY", raising=False)
-    monkeypatch.delenv("GROQ_API_KEY", raising=False)
-    monkeypatch.setenv("OPENAI_API_KEY", "x")
-    assert {m["provider"] for m in llm.available()} == {"openai"}
+    monkeypatch.setenv("GROQ_API_KEY", "x")
+    assert {m["provider"] for m in llm.available()} == {"groq"}
     assert not llm.is_available(GEMMA)
 
 
@@ -111,3 +109,9 @@ def test_groq_uses_its_own_output_cap_name_and_extra_fields(monkeypatch):
     kw = sent[0]
     assert kw["model"] == "openai/gpt-oss-20b" and kw["max_completion_tokens"] == 4000 and "max_tokens" not in kw
     assert kw["reasoning_effort"] == "low" and kw["extra_body"] == {"include_reasoning": False}
+
+
+def test_openai_is_not_a_provider():
+    assert "openai" not in llm.PROVIDERS
+    assert not any(m["provider"] == "openai" for m in llm.MODELS.values())
+    assert llm.DEFAULT in llm.MODELS and llm.FRONTIER in llm.MODELS

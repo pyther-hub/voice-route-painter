@@ -152,8 +152,8 @@ def test_voice_turn_speaks_filler_and_tagline(monkeypatch):
     sess.speak = None
 
 
-def test_frontier_is_hidden_from_the_picker():
-    assert all(m["id"] != "openai/gpt-5.4" for m in llm.available())
+def test_frontier_model_is_a_known_non_openai_model():
+    assert llm.FRONTIER in llm.MODELS and llm.MODELS[llm.FRONTIER]["provider"] != "openai"
 
 
 def test_proposal_click_message_goes_through_main(monkeypatch):

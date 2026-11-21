@@ -1,7 +1,7 @@
 """Product hygiene in one place: who may connect, how fast, and how much money a person / the day may cost.
 
 Everything here is in memory (one server process). A restart resets the counters, so also set a spending
-limit in the OpenAI and Sarvam dashboards: that is the backstop this file can't be.
+limit in the Sarvam and Groq dashboards: that is the backstop this file can't be.
 
 Settings come from environment variables (see .env.example); the defaults are safe for a public demo.
 """

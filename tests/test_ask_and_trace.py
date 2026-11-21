@@ -92,8 +92,12 @@ def test_followups_set_chips_and_drop_stale(monkeypatch):
     from app import agent
     sid = "follow1"
     tools.set_route(sid, ["delhi", "jaipur"])
-    fake = SimpleNamespace(output_text="Add Agra\n- Make it a round trip\n", output=[], usage=SimpleNamespace(total_tokens=50))
-    monkeypatch.setattr(agent.llm._openai.responses, "create", lambda **kw: fake)
+    msg = SimpleNamespace(content="Add Agra\n- Make it a round trip\n", tool_calls=None,
+                          model_dump=lambda **kw: {"role": "assistant", "content": "Add Agra\n- Make it a round trip\n"})
+    usage = SimpleNamespace(prompt_tokens=30, completion_tokens=20, total_tokens=50, prompt_tokens_details=None)
+    fake = SimpleNamespace(choices=[SimpleNamespace(message=msg)], usage=usage)
+    monkeypatch.setitem(agent.llm._clients, "sarvam", SimpleNamespace(chat=SimpleNamespace(
+        completions=SimpleNamespace(create=lambda **kw: fake))))
     agent.followups(sid, "Delhi se Jaipur", 0)
     assert state.ui(sid)["followups"] == ["Add Agra", "Make it a round trip"] and state.ui(sid)["tokens"] == 50
     state.session(sid).input_no = 1                                   # a newer message arrived: late chips are dropped

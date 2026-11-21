@@ -1,10 +1,10 @@
 """Eval runner: plays every session in evals/sessions.json through the real agent and scores each turn.
 
-    python -m evals.run --yes                 # all 50 sessions (calls the OpenAI API: costs money)
+    python -m evals.run --yes                 # all 50 sessions (calls the LLM API: costs money)
     python -m evals.run --yes --only s06 s37  # a few sessions
     python -m evals.run --yes --tag undo      # sessions with this tag
     python -m evals.run --yes --first 5       # the first 5 sessions (cost check before a full run)
-    python -m evals.run --yes --model sarvam/gemma4   # another model from app/llm.py (default: LLM_MODEL or nano)
+    python -m evals.run --yes --model sarvam/gemma4   # another model from app/llm.py (default: LLM_MODEL or DeepSeek)
     python -m evals.run --yes --pause 65      # wait between turns (a provider's per-minute token limit, e.g. Groq's)
 
 Every turn is printed and appended to evals/results/<prompt>-<time>.turns.jsonl as it finishes (reply, tool
@@ -202,7 +202,7 @@ def main() -> None:
     p.add_argument("--tag", help="only sessions with this tag")
     p.add_argument("--first", type=int, help="only the first N sessions")
     p.add_argument("--pause", type=float, default=0, help="seconds to wait between turns (rate-limited providers)")
-    p.add_argument("--model", help="an id from app/llm.py MODELS (default: LLM_MODEL or gpt-5.4-nano)")
+    p.add_argument("--model", help="an id from app/llm.py MODELS (default: LLM_MODEL or DeepSeek)")
     a = p.parse_args()
     sessions = json.loads(SESSIONS.read_text())
     if a.only:

@@ -10,6 +10,7 @@ Write paths:
 - emit_progress(): live "what the agent is doing" events for the UI. Not trip state, never breaks a turn.
 """
 import itertools
+import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Callable
@@ -27,7 +28,7 @@ DAY_DRIVE_MIN = 12 * 60   # a leg longer than this is more than one long day of 
 MAX_HISTORY = 20      # undo depth
 MAX_TURNS = 3         # past (user, reply) pairs the agent sees
 DISPLAY_FIELDS = {"heard", "status", "message", "question", "trace_id", "tokens", "heard_marks", "suggestions", "followups",
-                  "model", "models"}   # what set_display may change
+                  "model", "models", "proposal"}   # what set_display may change
 
 
 @dataclass
@@ -46,6 +47,12 @@ class Session:
     dismissed: set[str] = field(default_factory=set)         # place ids the user skipped (never suggested again)
     input_no: int = 0        # counts the user's messages; a late follow-up list checks it so it never shows up stale
     model: str = field(default_factory=lambda: llm.DEFAULT)  # llm.MODELS id the agent uses (the UI's switch)
+    proposal: dict | None = None     # the frontier planner's pending proposal (same dict as ui.proposal); not the trip
+    frontier_used: bool = False      # this turn already called the frontier planner (one call per turn)
+    frontier_calls: int = 0          # planner calls in this session (capped: guard.FRONTIER_PER_SESSION)
+    ip: str = "local"                # the visitor's IP (main.py), for the planner's per-IP cap
+    speak: Callable[[str], None] | None = None   # set by main.py for a voice turn: say this line aloud (TTS)
+    speak_in: str | None = None      # language Sarvam STT detected in this message (None = typed: nothing is spoken)
 
 
 _sessions: dict[str, Session] = {}
@@ -98,6 +105,22 @@ class Suggestion(_Loose):                # a card in the side panel: a place the
     lon: float | None = None
 
 
+class Proposal(_Loose):                  # the frontier planner's proposal; never the trip until accepted
+    kind: str                            # "itinerary" | "compare"
+    title: str = ""
+    tagline: str = ""
+    stops: list[dict] = []               # itinerary: [{id, name, state, lat, lon, why}]
+    legs: list[dict] = []                # itinerary: [{km, car_min, path?}]
+    total_km: float = 0
+    total_min: int = 0
+    days_estimate: int | None = None
+    reasoning: str = ""
+    dropped: list[str] = []              # names the planner gave that aren't in the place list
+    options: list[dict] = []             # compare: [{key, label, stops, legs, total_km, total_min, pros, cons}]
+    recommended: str | None = None       # compare: "A" | "B"
+    short_answer: str = ""
+
+
 class HeardMark(_Loose):                 # a place found in `heard`: UI shows it bold + a ring on the map
     start: int
     end: int
@@ -143,6 +166,7 @@ class UI(BaseModel):
     session_id: str = ""                 # shown in the UI (copyable) so a test case can be referred to
     model: str = ""                      # llm.MODELS id this session's agent uses
     models: list[ModelChoice] = []       # what the switch + picker offer (only models whose API key is set)
+    proposal: Proposal | None = None     # a plan from the frontier planner, shown as a ghost route + card
 
 
 class State(BaseModel):
@@ -242,6 +266,9 @@ def update_state(session_id: str, stops: list[str], reply: str | None = None, sa
                     "can_undo": bool(s.history), "can_redo": bool(s.future)},
            "ui": {**s.state["ui"],
                   "message": reply if reply is not None else " → ".join(p["name"] for p in found)}}
+    if s.proposal:        # any trip change (accept, an edit, undo/redo, ✕, a card, a shared link) ends a proposal
+        s.proposal = None
+        new["ui"]["proposal"] = None
     s.state = check_state(new)
     _notify(s)
     return new
@@ -292,10 +319,14 @@ _step_ids = itertools.count(1)
 
 
 @contextmanager
-def progress_step(session_id: str, label: str):
+def progress_step(session_id: str, label: str, **extra):
     """Show one step in the UI: 'running' now, 'done' (or 'error') when the block ends.
-    The block may set info["label"], info["pin"] ({name, lat, lon}) or info["status"] before it ends."""
-    info = {"id": f"s{next(_step_ids)}", "label": label, "status": "done", "pin": None}
+    The block may set info["label"], info["pin"] ({name, lat, lon}) or info["status"] before it ends.
+    extra = fields for the activity timeline: kind ("llm" | "tool"), name, detail (arguments), result (one line);
+    the block may fill detail/result before it ends. info["ms"] is the step's duration."""
+    info = {"id": f"s{next(_step_ids)}", "label": label, "status": "done", "pin": None,
+            "kind": "", "name": "", "detail": "", "result": "", "ms": None, **extra}
+    t0 = time.perf_counter()
     emit_progress(session_id, {"event": "step", **info, "status": "running"})
     try:
         yield info
@@ -303,7 +334,18 @@ def progress_step(session_id: str, label: str):
         info["status"] = "error"
         raise
     finally:
+        info["ms"] = round((time.perf_counter() - t0) * 1000)
         emit_progress(session_id, {"event": "step", **info})
+
+
+def speak(session_id: str, text: str) -> None:
+    """Say a short line aloud if this is a voice turn (main.py sets Session.speak). Fire and forget."""
+    s = session(session_id)
+    if s.speak and text:
+        try:
+            s.speak(text)
+        except Exception as e:
+            print(f"[state] speak failed: {e!r}")
 
 
 def drop_session(session_id: str) -> None:

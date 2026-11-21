@@ -17,6 +17,10 @@ Protocol (matches static/app.js):
                         the server turns the audio into text with Sarvam (app/stt.py), shows it as
                         "heard", and from there it is the same as a typed message.
     server -> browser   the FULL trip state (see state.empty_state()), after every change
+    browser -> server   {"type": "proposal", "action": "accept" | "decline" | "remove", "option": "A", "index": 2}
+                        (buttons on the planner's proposal card; no agent call)
+    server -> browser   {"type": "speech", "mime": "audio/wav", "data": "<base64>"}   (voice turns only: the planner's
+                        filler line and its short answer, spoken by Sarvam TTS in the language the user spoke)
     server -> browser   {"type": "progress", "event": "start" | "step" | "end", ...} while a turn runs:
                         what the agent is doing right now (steps: id, label, status, optional pin).
                         Progress is display-only; the trip itself always arrives as the full state.
@@ -35,7 +39,7 @@ from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconn
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app import agent, geo, guard, llm, places, state, stt, tools, trace
+from app import agent, geo, guard, llm, places, state, stt, tools, trace, tts
 
 # Product hygiene (Origin check, rate limits, spend cap, trace key) lives in app/guard.py.
 # TODO(auth): no accounts; anyone who opens the site can use it, within the limits in guard.py.
@@ -91,11 +95,14 @@ async def transcribe_audio(session_id: str, msg: dict) -> tuple[str | None, str 
     names = [stop["name"] for stop in state.trip(session_id)["stops"]]
     
     try:
-        text, _language = await stt.transcribe_detect(audio, str(msg.get("mime") or "audio/webm"),
-                                                     stt.keyterms_for(names))
+        text, language = await stt.transcribe_detect(audio, str(msg.get("mime") or "audio/webm"),
+                                                    stt.keyterms_for(names))
     except stt.STTError as e:
         return None, str(e)
     guard.charge(session_id, guard.STT_COST_USD)
+    # A voice turn: the language the user spoke (one Bulbul can speak; others fall back to Hindi). The agent and the
+    # planner write their spoken lines in it, and TTS speaks them with that language's voice.
+    state.session(session_id).speak_in = tts.language_for(language)
     return text, None
 
 
@@ -128,6 +135,7 @@ async def _read(session_id: str, msg: dict, ip: str) -> tuple[str | None, str | 
         "undo": lambda: tools.undo_redo(session_id, "undo"),
         "redo": lambda: tools.undo_redo(session_id, "redo"),
         "load": lambda: tools.load_trip(session_id, msg.get("ids")),
+        "proposal": lambda: tools.proposal_click(session_id, msg.get("action"), msg.get("option"), msg.get("index")),
     }
     
     if msg.get("type") in direct:
@@ -151,7 +159,7 @@ async def _read(session_id: str, msg: dict, ip: str) -> tuple[str | None, str | 
         state.set_display(session_id, model=msg["id"])
         return None, None
     return None, ('Expected {"type": "text" | "audio" | "choose" | "add" | "dismiss" | "remove" | "undo" | "redo" | '
-                  '"load" | "model", ...}.')
+                  '"load" | "model" | "proposal", ...}.')
 
 
 @app.websocket("/ws")
@@ -165,6 +173,7 @@ async def ws_endpoint(ws: WebSocket):
         return
     await ws.accept()
     session_id = uuid.uuid4().hex[:12]
+    state.session(session_id).ip = ip                         # the planner's per-IP cap
     loop = asyncio.get_running_loop()
 
     def push(message: dict) -> None:
@@ -172,6 +181,29 @@ async def ws_endpoint(ws: WebSocket):
         # thread. Hand the send over to the event loop that owns the socket. All sends come from one
         # thread, so the browser sees them in the order they happened.
         asyncio.run_coroutine_threadsafe(ws.send_json(message), loop)
+
+    def speaker(input_no: int, language: str):
+        """For a voice turn: a function the agent's thread calls to have one short line spoken (Sarvam TTS).
+        Lines go out in the order they were asked for (the filler before the answer, even when the answer's
+        audio would be ready first): one lock per turn, and asyncio.Lock wakes waiters first come, first served.
+        The audio is dropped if the user has sent something newer, or the spend cap is reached."""
+        lock = asyncio.Lock()
+
+        async def say(text: str) -> None:
+            async with lock:
+                await say_now(text)
+
+        async def say_now(text: str) -> None:
+            if guard.over_budget(session_id):
+                return
+            try:
+                wav = await tts.speak(text, language)
+            except tts.TTSError:
+                return                                        # the text is on screen already
+            guard.charge(session_id, guard.TTS_COST_USD)
+            if state.session(session_id).input_no == input_no:
+                await ws.send_json({"type": "speech", "mime": "audio/wav", "data": base64.b64encode(wav).decode()})
+        return lambda text: asyncio.run_coroutine_threadsafe(say(text), loop)
 
     state.session(session_id).listener = push
     state.session(session_id).on_progress = push
@@ -185,7 +217,10 @@ async def ws_endpoint(ws: WebSocket):
             raw = await ws.receive_text()
             n = state.session(session_id).input_no = state.session(session_id).input_no + 1
             state.set_display(session_id, followups=[])           # the old chips belong to the old trip
+            sess = state.session(session_id)
+            sess.speak_in = None                                  # set by transcribe_audio for a voice message
             text, error, kind = await read_input(session_id, raw, ip)
+            sess.speak = speaker(n, sess.speak_in) if sess.speak_in else None
             if error:
                 state.set_display(session_id, status="idle", message=error)
                 continue

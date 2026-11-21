@@ -1,0 +1,196 @@
+[
+  {"id": "s01", "tags": ["create", "hinglish"], "turns": [
+    {"say": "Delhi se Agra", "expect": {"stops": ["delhi", "agra"]}}]},
+
+  {"id": "s02", "tags": ["create", "remove", "undo", "hinglish"], "turns": [
+    {"say": "Lucknow se Jaipur jaana hai, beech mein Agra", "expect": {"stops": ["lucknow", "agra", "jaipur"]}},
+    {"say": "Agra hata do", "expect": {"stops": ["lucknow", "jaipur"]}},
+    {"say": "wapas pehle jaisa kar do", "expect": {"stops": ["lucknow", "agra", "jaipur"]}}]},
+
+  {"id": "s03", "tags": ["create", "insert", "english"], "turns": [
+    {"say": "Plan a drive from Mumbai to Goa", "expect": {"first": "mumbai", "last": "panaji"}},
+    {"say": "Add Pune right after Mumbai, we have friends to meet there", "expect": {"order": ["mumbai", "pune", "panaji"], "first": "mumbai"}}]},
+
+  {"id": "s04", "tags": ["round-trip", "long", "english"], "turns": [
+    {"say": "We are a family of four starting from Bengaluru next week. We want to see the Mysuru palace, then go up to Ooty for two nights, and finally come back home to Bengaluru at the end of the trip.",
+     "expect": {"round_trip": true, "first": "bengaluru", "order": ["bengaluru", "mysuru", "ooty", "bengaluru"]}}]},
+
+  {"id": "s05", "tags": ["round-trip", "hinglish"], "turns": [
+    {"say": "Delhi se Jaipur aur Udaipur, phir wapas Delhi", "expect": {"any_of": [{"stops": ["delhi", "jaipur", "udaipur", "delhi"]}, {"asks": true}]}}]},
+
+  {"id": "s06", "tags": ["round-trip", "follow-up", "english", "from-trace:e3d92121f18b"], "turns": [
+    {"say": "Suggest a trip from Jammu, Goa and Kolkata.", "expect": {"order": ["jammu", "panaji", "kolkata"], "first": "jammu"}},
+    {"say": "After Kolkata we will drive all the way back home to Jammu, so please make it one full loop that ends where we started.", "expect": {"round_trip": true, "first": "jammu", "order": ["jammu", "panaji", "kolkata", "jammu"]}}]},
+
+  {"id": "s07", "tags": ["flight-request", "english"], "turns": [
+    {"say": "Delhi to Chennai", "expect": {"stops": ["delhi", "chennai"]}},
+    {"say": "This is too long to drive, I'll take a flight for this one", "expect": {"stops": ["delhi", "chennai"]}}]},
+
+  {"id": "s08", "tags": ["flight-request", "hinglish"], "turns": [
+    {"say": "Mumbai se Kolkata, beech mein Nagpur", "expect": {"stops": ["mumbai", "nagpur", "kolkata"]}},
+    {"say": "Nagpur se Kolkata flight lenge", "expect": {"stops": ["mumbai", "nagpur", "kolkata"]}},
+    {"say": "nahi, sab drive karenge", "expect": {"stops": ["mumbai", "nagpur", "kolkata"]}}]},
+
+  {"id": "s09", "tags": ["guardrail", "outside-india", "hinglish"], "turns": [
+    {"say": "Delhi se Kathmandu jaana hai", "expect": {"not_has": ["kathmandu"], "any_of": [{"unchanged": true}, {"asks": true}, {"max_len": 2}]}}]},
+
+  {"id": "s10", "tags": ["typo", "short"], "turns": [
+    {"say": "Banglore se Mysore", "expect": {"stops": ["bengaluru", "mysuru"]}}]},
+
+  {"id": "s11", "tags": ["typo", "hinglish"], "turns": [
+    {"say": "Jaipr se Jodhpr aur phir Jaislmer", "expect": {"stops": ["jaipur", "jodhpur", "jaisalmer"]}}]},
+
+  {"id": "s12", "tags": ["suggest", "hinglish"], "turns": [
+    {"say": "Delhi se Manali", "expect": {"first": "delhi", "last": "manali"}},
+    {"say": "Delhi se Manali ka raasta lamba hai, beech mein khaane ke liye kuch acchi jagah batao jahan parathe ya local khana mil jaye, ruk ke kha lenge", "expect": {"unchanged": true}}]},
+
+  {"id": "s13", "tags": ["suggest", "english"], "turns": [
+    {"say": "Chennai to Kanyakumari road trip", "expect": {"first": "chennai", "last": "kanyakumari"}},
+    {"say": "Suggest a few temples on the way", "expect": {"unchanged": true}}]},
+
+  {"id": "s14", "tags": ["insert-after", "hinglish"], "turns": [
+    {"say": "Amritsar se Shimla", "expect": {"stops": ["amritsar", "shimla"]}},
+    {"say": "Amritsar ke baad Chandigarh bhi daal do, wahan ek din rukna hai", "expect": {"stops": ["amritsar", "chandigarh", "shimla"]}}]},
+
+  {"id": "s15", "tags": ["replace", "hinglish"], "turns": [
+    {"say": "Kochi se Munnar", "expect": {"stops": ["kochi", "munnar"]}},
+    {"say": "Munnar ki jagah Alappuzha kar do, houseboat mein rehna hai", "expect": {"stops": ["kochi", "alappuzha"]}}]},
+
+  {"id": "s16", "tags": ["clear", "mixed"], "turns": [
+    {"say": "Pune to Hyderabad", "expect": {"stops": ["pune", "hyderabad"]}},
+    {"say": "Sab clear kar do", "expect": {"stops": []}}]},
+
+  {"id": "s17", "tags": ["add-end", "undo", "hinglish"], "turns": [
+    {"say": "Kolkata se Darjeeling", "expect": {"stops": ["kolkata", "darjeeling"]}},
+    {"say": "Darjeeling ke baad Gangtok bhi add karo end mein, monastery dekhni hai", "expect": {"stops": ["kolkata", "darjeeling", "gangtok"]}},
+    {"say": "undo", "expect": {"stops": ["kolkata", "darjeeling"]}}]},
+
+  {"id": "s18", "tags": ["one-place", "short"], "turns": [
+    {"say": "Goa", "expect": {"unchanged": true}}]},
+
+  {"id": "s19", "tags": ["round-trip", "long", "hinglish"], "turns": [
+    {"say": "Hum log Ahmedabad se nikal rahe hain, pehle Dwarka jayenge darshan ke liye, uske baad Somnath, aur agar time bacha toh Diu bhi dekhna hai beach ke liye, phir wapas Ahmedabad aa jayenge",
+     "expect": {"round_trip": true, "order": ["ahmedabad", "dwarka", "somnath", "diu", "ahmedabad"]}}]},
+
+  {"id": "s20", "tags": ["reorder", "hinglish"], "turns": [
+    {"say": "Delhi, Agra, Jaipur", "expect": {"stops": ["delhi", "agra", "jaipur"]}},
+    {"say": "Jaipur pehle, phir Agra", "expect": {"stops": ["delhi", "jaipur", "agra"]}}]},
+
+  {"id": "s21", "tags": ["exact-list", "english"], "turns": [
+    {"say": "Only these: Bhopal to Indore to Ujjain, nothing else", "expect": {"stops": ["bhopal", "indore", "ujjain"]}}]},
+
+  {"id": "s22", "tags": ["long-drive", "hinglish"], "turns": [
+    {"say": "Srinagar se Kanyakumari tak poora India drive karke dekhna hai, Kashmir se shuru karke bilkul south end tak, ek hi gaadi mein, aaram se", "expect": {"first": "srinagar", "last": "kanyakumari", "max_len": 4}}]},
+
+  {"id": "s23", "tags": ["add", "northeast", "hinglish"], "turns": [
+    {"say": "Guwahati se Shillong", "expect": {"stops": ["guwahati", "shillong"]}},
+    {"say": "Cherrapunji bhi", "expect": {"has": ["guwahati", "shillong", "cherrapunji"], "first": "guwahati"}}]},
+
+  {"id": "s24", "tags": ["round-trip", "mixed"], "turns": [
+    {"say": "Bhubaneswar Puri Konark circuit, wapas Bhubaneswar", "expect": {"round_trip": true, "first": "bhubaneswar", "has": ["puri", "konark"]}}]},
+
+  {"id": "s25", "tags": ["add-start", "hinglish"], "turns": [
+    {"say": "Agra se Varanasi", "expect": {"stops": ["agra", "varanasi"]}},
+    {"say": "Nahi, hum Delhi mein rehte hain toh trip Delhi se start karo", "expect": {"stops": ["delhi", "agra", "varanasi"]}}]},
+
+  {"id": "s26", "tags": ["remove", "english"], "turns": [
+    {"say": "Mumbai, Pune, Satara, Kolhapur", "expect": {"stops": ["mumbai", "pune", "satara", "kolhapur"]}},
+    {"say": "remove Satara", "expect": {"stops": ["mumbai", "pune", "kolhapur"]}}]},
+
+  {"id": "s27", "tags": ["reverse", "english"], "turns": [
+    {"say": "Udaipur to Jaipur", "expect": {"stops": ["udaipur", "jaipur"]}},
+    {"say": "Reverse the trip, we want to start from Jaipur instead and end in Udaipur", "expect": {"stops": ["jaipur", "udaipur"]}}]},
+
+  {"id": "s28", "tags": ["vague", "hinglish"], "turns": [
+    {"say": "Mujhe pahadon mein ghoomna hai kuch din ke liye, thandi jagah chahiye, zyada bheed nahi honi chahiye aur Delhi se bahut door bhi nahi", "expect": {"any_of": [{"asks": true}, {"first": "delhi"}]}}]},
+
+  {"id": "s29", "tags": ["vague", "english"], "turns": [
+    {"say": "We have a long weekend coming up and I live in Pune. Where should I go for a relaxed beach holiday, somewhere not too far to drive?", "expect": {"any_of": [{"asks": true}, {"first": "pune"}]}}]},
+
+  {"id": "s30", "tags": ["round-trip", "english"], "turns": [
+    {"say": "Start in Hyderabad, see Hampi and Gokarna, and drive back home", "expect": {"round_trip": true, "first": "hyderabad", "order": ["hyderabad", "hampi", "gokarna", "hyderabad"]}}]},
+
+  {"id": "s31", "tags": ["flight-request", "short", "english"], "turns": [
+    {"say": "Leh to Kanyakumari", "expect": {"first": "leh", "last": "kanyakumari"}},
+    {"say": "fly this one", "expect": {"first": "leh", "last": "kanyakumari"}}]},
+
+  {"id": "s32", "tags": ["insert-after", "hinglish"], "turns": [
+    {"say": "Patna se Varanasi", "expect": {"stops": ["patna", "varanasi"]}},
+    {"say": "Varanasi ke baad Prayagraj", "expect": {"stops": ["patna", "varanasi", "prayagraj"]}}]},
+
+  {"id": "s33", "tags": ["alias", "short"], "turns": [
+    {"say": "Bombay se Poona", "expect": {"stops": ["mumbai", "pune"]}}]},
+
+  {"id": "s34", "tags": ["alias", "english"], "turns": [
+    {"say": "Calcutta to Madras", "expect": {"stops": ["kolkata", "chennai"]}}]},
+
+  {"id": "s35", "tags": ["alias", "hinglish"], "turns": [
+    {"say": "Banaras se Allahabad", "expect": {"stops": ["varanasi", "prayagraj"]}}]},
+
+  {"id": "s36", "tags": ["build", "remove", "hinglish"], "turns": [
+    {"say": "Haridwar se Rishikesh", "expect": {"stops": ["haridwar", "rishikesh"]}},
+    {"say": "Rishikesh ke baad Dehradun aur Mussoorie bhi jodo, pahad dekhne hain", "expect": {"first": "haridwar", "has": ["rishikesh", "dehradun", "mussoorie"]}},
+    {"say": "Mussoorie hata do", "expect": {"first": "haridwar", "has": ["rishikesh", "dehradun"], "not_has": ["mussoorie"]}}]},
+
+  {"id": "s37", "tags": ["flight-request", "long", "english"], "turns": [
+    {"say": "I want to start from Delhi, drive to Jaipur and Udaipur, then fly from Udaipur to Kochi and finally drive to Munnar",
+     "expect": {"stops": ["delhi", "jaipur", "udaipur", "kochi", "munnar"]}}]},
+
+  {"id": "s38", "tags": ["island", "hinglish"], "turns": [
+    {"say": "Kolkata se Port Blair", "expect": {"first": "kolkata", "last": "port-blair"}}]},
+
+  {"id": "s39", "tags": ["undo-empty", "short"], "turns": [
+    {"say": "undo kar do", "expect": {"unchanged": true}}]},
+
+  {"id": "s40", "tags": ["create", "hinglish"], "turns": [
+    {"say": "Aurangabad se Pune", "expect": {"stops": ["aurangabad", "pune"]}}]},
+
+  {"id": "s41", "tags": ["round-trip", "long", "hinglish"], "turns": [
+    {"say": "Bhai Delhi se shuru karke Amritsar jaana hai golden temple ke liye, wahan se Dharamshala, phir Manali, aur last mein Shimla hote hue wapas Delhi",
+     "expect": {"round_trip": true, "order": ["delhi", "amritsar", "dharamshala", "manali", "shimla", "delhi"]}}]},
+
+  {"id": "s42", "tags": ["suggest", "english"], "turns": [
+    {"say": "Jaipur to Jaisalmer", "expect": {"first": "jaipur", "last": "jaisalmer"}},
+    {"say": "Where can I stop for a night on the way?", "expect": {"first": "jaipur", "last": "jaisalmer"}}]},
+
+  {"id": "s43", "tags": ["replace", "english"], "turns": [
+    {"say": "Chennai to Puducherry", "expect": {"stops": ["chennai", "puducherry"]}},
+    {"say": "Actually my friend said Puducherry is too crowded this month, so instead of Puducherry please make it Madurai, we want to see the temple there", "expect": {"stops": ["chennai", "madurai"]}}]},
+
+  {"id": "s44", "tags": ["via", "english"], "turns": [
+    {"say": "Bengaluru to Kochi", "expect": {"stops": ["bengaluru", "kochi"]}},
+    {"say": "Go via Mysuru and Ooty", "expect": {"stops": ["bengaluru", "mysuru", "ooty", "kochi"]}}]},
+
+  {"id": "s45", "tags": ["chit-chat", "short"], "turns": [
+    {"say": "Namaste", "expect": {"unchanged": true}}]},
+
+  {"id": "s46", "tags": ["question", "hinglish"], "turns": [
+    {"say": "Delhi se Lucknow", "expect": {"stops": ["delhi", "lucknow"]}},
+    {"say": "kitna km hai?", "expect": {"unchanged": true}}]},
+
+  {"id": "s47", "tags": ["too-many", "list"], "turns": [
+    {"say": "Delhi Agra Jaipur Udaipur Jodhpur Jaisalmer Bikaner Ajmer Pushkar Chittorgarh", "expect": {"max_len": 8}}]},
+
+  {"id": "s48", "tags": ["long", "english"], "turns": [
+    {"say": "My parents want an easy temple trip in Tamil Nadu: start from Chennai, visit Kanchipuram, then Thanjavur for the big temple, Madurai for Meenakshi temple, and end at Rameswaram. Please keep driving days short for them.",
+     "expect": {"first": "chennai", "last": "rameswaram", "order": ["chennai", "kanchipuram", "thanjavur", "madurai", "rameswaram"]}}]},
+
+  {"id": "s49", "tags": ["round-trip", "undo-return", "hinglish"], "turns": [
+    {"say": "Mumbai se Goa aur wapas", "expect": {"stops": ["mumbai", "panaji", "mumbai"]}},
+    {"say": "wapas nahi aana, Goa mein hi khatam", "expect": {"stops": ["mumbai", "panaji"]}}]},
+
+  {"id": "s50", "tags": ["flight-request", "undo", "mixed"], "turns": [
+    {"say": "Delhi to Bengaluru", "expect": {"stops": ["delhi", "bengaluru"]}},
+    {"say": "Itna lamba drive nahi hoga, Delhi se Bengaluru flight le lenge", "expect": {"stops": ["delhi", "bengaluru"]}},
+    {"say": "undo", "expect": {"stops": ["delhi", "bengaluru"]}}]},
+
+  {"id": "s51", "tags": ["suggest", "enroute", "hinglish"], "turns": [
+    {"say": "Jaipur se Udaipur", "expect": {"first": "jaipur", "last": "udaipur"}},
+    {"say": "Beech mein ruk ke kuch dekhna hai, kya suggest karoge?",
+     "expect": {"any_of": [{"asks": true, "unchanged": true}, {"first": "jaipur", "last": "udaipur", "max_len": 4, "unchanged": false}]}}]},
+
+  {"id": "s52", "tags": ["suggest", "nearby", "english"], "turns": [
+    {"say": "Delhi to Udaipur", "expect": {"first": "delhi", "last": "udaipur"}},
+    {"say": "What is worth seeing near Udaipur?",
+     "expect": {"any_of": [{"asks": true, "unchanged": true}, {"order": ["delhi", "udaipur"], "unchanged": false}]}}]}
+]

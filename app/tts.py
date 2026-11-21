@@ -31,6 +31,22 @@ LANGUAGES = {"bn-IN", "en-IN", "gu-IN", "hi-IN", "kn-IN", "ml-IN", "mr-IN", "od-
 DEFAULT_LANGUAGE = "hi-IN"   # most users speak Hinglish; Bulbul reads code-mixed Roman text with a Hindi voice
 
 
+# How text in each language should be written so the screen and Bulbul agree. Hindi stays Hinglish in Latin
+# letters (how the whole app writes it); the other languages use their own script, which Bulbul reads best.
+WRITE_AS = {
+    "hi-IN": "Hinglish (Hindi in Latin letters)", "en-IN": "English",
+    "bn-IN": "Bengali, in Bengali script", "gu-IN": "Gujarati, in Gujarati script",
+    "kn-IN": "Kannada, in Kannada script", "ml-IN": "Malayalam, in Malayalam script",
+    "mr-IN": "Marathi, in Devanagari script", "od-IN": "Odia, in Odia script",
+    "pa-IN": "Punjabi, in Gurmukhi script", "ta-IN": "Tamil, in Tamil script", "te-IN": "Telugu, in Telugu script",
+}
+
+
+def write_as(language: str | None) -> str:
+    """The language a spoken line must be written in, for the LLM prompts ("Tamil, in Tamil script")."""
+    return WRITE_AS[language_for(language)]
+
+
 class TTSError(Exception):
     pass
 

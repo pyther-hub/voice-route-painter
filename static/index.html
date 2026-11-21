@@ -49,10 +49,21 @@
         <div id="map"></div>
         <!-- Question card: shown when the agent asks something; one button per option -->
         <div id="ask" class="ask" hidden></div>
+        <!-- Place names on the map: the slider sets the smallest town that gets a name (wired up in app.js) -->
+        <label class="names-ctl" title="Show names of places on the map. Names appear as you zoom in; slide right for more.">
+          <span>Names</span>
+          <input id="names-range" type="range" min="0" max="100" step="1" value="50" aria-label="How many place names to show">
+          <output id="names-val"></output>
+        </label>
       </div>
     </div>
 
     <aside class="side">
+      <!-- Agent activity: every LLM step and tool call of the current turn, live (filled by app.js) -->
+      <div id="trail" class="card trail" hidden>
+        <div class="trail-head"><span>Agent activity</span><span id="trail-sum" class="trail-sum"></span></div>
+        <ol id="trail-list" class="trail-list"></ol>
+      </div>
       <div id="followups" class="followups" hidden></div>
       <div id="suggest" class="card suggest" hidden></div>
       <!-- Example sentences, shown only while there is no trip: one click sends it like typed text -->
@@ -64,6 +75,8 @@
         <button id="share" title="Copy a link to this trip">🔗 Share</button>
         <a id="gmaps" class="disabled" target="_blank" rel="noopener" title="Driving directions in Google Maps">Google Maps ↗</a>
       </div>
+      <!-- A plan from the frontier planner (filled by app.js); shown instead of the stops card while it is up -->
+      <div id="proposal" class="card proposal" hidden></div>
       <div id="stops" class="card list"></div>
       <p class="footnote">Distances follow India’s main roads (OpenStreetMap); driving times are estimates.</p>
     </aside>
@@ -75,6 +88,6 @@
   </footer>
 
   <script src="leaflet.js"></script>
-  <script src="app.js?v=35"></script>
+  <script src="app.js?v=44"></script>
 </body>
 </html>

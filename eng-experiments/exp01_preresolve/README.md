@@ -22,18 +22,20 @@ Script: `offline.py`.
 
 ## Step 2: LLM run (paid)
 
-Model `sarvam/deepseekv4.1-flash-1017`, 300 examples, one run each per arm, arms interleaved per example.
+Model `sarvam/deepseekv4.1-flash-1017`, 300 examples, one run each per arm (5 arms), arms interleaved per example.
 
 | arm | prompt | what the LLM gets before its first call |
 |---|---|---|
 | 1 baseline | `orchestrator_v24` | raw text only; every name needs `resolve_place` |
 | 2 pre-resolved exact | `orchestrator_v25` | `detected_places` from the exact matcher (ok → id, ambiguous → options) |
-| 3 pre-resolved exact + fuzzy | `prompts/orchestrator_v25_fuzzy.md` | `detected_places` from exact + fuzzy at the threshold chosen from step 1 |
+| 3-fuzzy85 / 3-fuzzy90 / 3-fuzzy95 | `prompts/orchestrator_v25_fuzzy.md` | `detected_places` from exact + fuzzy, one arm per threshold (85, 90, 95) |
 
-Script: `run.py`. Results: not run yet.
+Run alongside exp-03's pass-rate run (which also calls Sarvam DeepSeek); arms are interleaved per example, so that load falls on every arm. 28 turns (16 Sarvam 429s, 2 timeouts, 10 that overlapped a sleep of the Mac between 03:28 and 13:49) were rerun with `../retry.py` and replaced in place (`"retried": true` in the row).
+
+Script: `run.py` (or `exp01.ipynb`).
 
 <!-- OFFLINE:START -->
-Commit 256a261 (dirty tree), 300 examples.
+Commit df08b81 (dirty tree), 300 examples.
 
 ### All examples
 
@@ -132,3 +134,84 @@ Commit 256a261 (dirty tree), 300 examples.
 - **exact+fuzzy>=90**: false positives: sambhar->sambhar(ok) ×3, khana->khanna(ok) ×3, puri->puri(ok) ×2, karna->karnal(ok) ×2, Zero->ziro(ok) ×2, lava->lava(ok) ×2, Anand->anand(ok) ×2, Bihar->bihar-sharif(ok) ×2, Sagar->sagar(ok) ×2, anand->anand(ok) ×1, gaya->gaya(ok) ×1, kitna->machilipatnam(ok) ×1, Uri->uri(ok) ×1, tala->tala(ok) ×1, Islamabad->anantnag(ok) ×1. Wrong ok: e003: to Goa->old-goa (gold panaji); e284: ko Goa->old-goa (gold panaji).
 - **exact+fuzzy>=95**: false positives: sambhar->sambhar(ok) ×3, khana->khanna(ok) ×3, puri->puri(ok) ×2, Zero->ziro(ok) ×2, lava->lava(ok) ×2, Anand->anand(ok) ×2, Bihar->bihar-sharif(ok) ×2, Sagar->sagar(ok) ×2, anand->anand(ok) ×1, gaya->gaya(ok) ×1, Uri->uri(ok) ×1, tala->tala(ok) ×1, Islamabad->anantnag(ok) ×1. Wrong ok: none.
 <!-- OFFLINE:END -->
+
+<!-- LLM:START -->
+Run `exp01-sarvam-deepseekv4.1-flash-1017-20261121-031436.json`: model `sarvam/deepseekv4.1-flash-1017`, 300 examples, commit df08b81 (dirty tree), 2026-11-21 14:24, place list 1063.
+
+| arm | prompt | input |
+|---|---|---|
+| 1-v24 | orchestrator_v24 | no detected_places; resolve_place for every name |
+| 2-exact | orchestrator_v25 | v25: exact names/aliases |
+| 3-fuzzy85 | orchestrator_v25_fuzzy | exact + spelling matches >= 85 |
+| 3-fuzzy90 | orchestrator_v25_fuzzy | exact + spelling matches >= 90 |
+| 3-fuzzy95 | orchestrator_v25_fuzzy | exact + spelling matches >= 95 |
+
+### Per arm
+
+| arm | turns | passed | pass rate | LLM steps / turn | steps histogram | resolve_place / turn | input tok / turn | cached tok / turn | output tok / turn | cost USD (all turns) | turn s p50 [95% CI] | p90 | p95 | p99 or max | LLM call ms p50 | errors |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1-v24 | 300 | 295 | 0.9833 | 2.6 | {1: 28, 2: 111, 3: 121, 4: 35, 5: 4, 6: 1} | 0.64 | 9393.0 | 8791.0 | 177.0 | 0.06951 | 2.11 [1.96, 2.30] | 3.92 | 4.76 | 6.55 | 775.0 | 0 |
+| 2-exact | 300 | 295 | 0.9833 | 2.03 | {1: 49, 2: 200, 3: 47, 4: 2, 5: 2} | 0.13 | 7812.0 | 7353.0 | 156.0 | 0.05746 | 1.68 [1.60, 1.81] | 3.27 | 4.0 | 5.87 | 832.0 | 0 |
+| 3-fuzzy85 | 300 | 295 | 0.9833 | 1.98 | {1: 46, 2: 217, 3: 34, 4: 2, 5: 1} | 0.1 | 7652.0 | 7174.0 | 152.0 | 0.05742 | 1.64 [1.57, 1.77] | 3.19 | 3.6 | 5.48 | 812.0 | 0 |
+| 3-fuzzy90 | 300 | 295 | 0.9833 | 1.97 | {1: 51, 2: 212, 3: 34, 4: 2, 5: 1} | 0.1 | 7564.0 | 7167.0 | 147.0 | 0.05271 | 1.67 [1.58, 1.78] | 3.07 | 3.62 | 5.27 | 821.0 | 0 |
+| 3-fuzzy95 | 300 | 295 | 0.9833 | 1.99 | {1: 52, 2: 206, 3: 37, 4: 3, 5: 2} | 0.12 | 7654.0 | 7300.0 | 150.0 | 0.05122 | 1.69 [1.57, 1.82] | 3.0 | 3.62 | 4.84 | 812.0 | 0 |
+
+### Paired differences (same example, arm − 1-v24)
+
+| pair | metric | examples | mean diff | 95% CI | median diff | up | down | same |
+|---|---|---|---|---|---|---|---|---|
+| 2-exact − 1-v24 | LLM steps | 300 | -0.57 | [-0.657, -0.483] | -1.0 | 9 | 152 | 139 |
+| 2-exact − 1-v24 | resolve_place calls | 300 | -0.51 | [-0.570, -0.450] | 0.0 | 0 | 148 | 152 |
+| 2-exact − 1-v24 | input tokens | 300 | -1580.92 | [-1905.468, -1255.516] | -2919.5 | 148 | 152 | 0 |
+| 2-exact − 1-v24 | turn seconds | 300 | -0.539 | [-0.797, -0.339] | -0.362 | 91 | 209 | 0 |
+| 2-exact − 1-v24 | pass (0/1) | 300 | 0.0 | [-0.010, 0.010] | 0.0 | 1 | 1 | 298 |
+| 3-fuzzy85 − 1-v24 | LLM steps | 300 | -0.613 | [-0.700, -0.530] | -1.0 | 7 | 158 | 135 |
+| 3-fuzzy85 − 1-v24 | resolve_place calls | 300 | -0.543 | [-0.603, -0.487] | -1.0 | 0 | 157 | 143 |
+| 3-fuzzy85 − 1-v24 | input tokens | 300 | -1741.393 | [-2064.617, -1418.739] | -3007.0 | 142 | 158 | 0 |
+| 3-fuzzy85 − 1-v24 | turn seconds | 300 | -0.567 | [-0.835, -0.372] | -0.307 | 98 | 202 | 0 |
+| 3-fuzzy85 − 1-v24 | pass (0/1) | 300 | 0.0 | [-0.010, 0.010] | 0.0 | 1 | 1 | 298 |
+| 3-fuzzy90 − 1-v24 | LLM steps | 300 | -0.63 | [-0.713, -0.550] | -1.0 | 8 | 162 | 130 |
+| 3-fuzzy90 − 1-v24 | resolve_place calls | 300 | -0.537 | [-0.597, -0.480] | -1.0 | 0 | 155 | 145 |
+| 3-fuzzy90 − 1-v24 | input tokens | 300 | -1828.967 | [-2136.151, -1527.511] | -3034.5 | 138 | 162 | 0 |
+| 3-fuzzy90 − 1-v24 | turn seconds | 300 | -0.613 | [-0.878, -0.421] | -0.386 | 88 | 212 | 0 |
+| 3-fuzzy90 − 1-v24 | pass (0/1) | 300 | 0.0 | [-0.010, 0.010] | 0.0 | 1 | 1 | 298 |
+| 3-fuzzy95 − 1-v24 | LLM steps | 300 | -0.607 | [-0.690, -0.527] | -1.0 | 8 | 155 | 137 |
+| 3-fuzzy95 − 1-v24 | resolve_place calls | 300 | -0.523 | [-0.583, -0.467] | -1.0 | 0 | 152 | 148 |
+| 3-fuzzy95 − 1-v24 | input tokens | 300 | -1739.443 | [-2048.964, -1436.819] | -2980.5 | 145 | 155 | 0 |
+| 3-fuzzy95 − 1-v24 | turn seconds | 300 | -0.514 | [-0.813, -0.178] | -0.388 | 91 | 209 | 0 |
+| 3-fuzzy95 − 1-v24 | pass (0/1) | 300 | 0.0 | [-0.010, 0.010] | 0.0 | 1 | 1 | 298 |
+
+### By tag
+
+| tag | examples | 1-v24: passed / steps / s p50 | 2-exact: passed / steps / s p50 | 3-fuzzy85: passed / steps / s p50 | 3-fuzzy90: passed / steps / s p50 | 3-fuzzy95: passed / steps / s p50 |
+|---|---|---|---|---|---|---|
+| typo | 31 | 31 / 3.03 / 2.81 | 31 / 2.48 / 1.8 | 31 / 2.13 / 1.63 | 31 / 2.23 / 1.62 | 31 / 2.39 / 1.87 |
+| alias | 34 | 34 / 3.21 / 2.77 | 34 / 2.12 / 1.66 | 34 / 2.09 / 1.81 | 34 / 2.06 / 1.95 | 34 / 2.12 / 1.91 |
+| same-name | 30 | 30 / 2.47 / 2.3 | 30 / 1.77 / 1.62 | 30 / 1.77 / 1.49 | 30 / 1.77 / 1.71 | 30 / 1.77 / 1.6 |
+| region | 23 | 19 / 2.22 / 2.01 | 19 / 2.0 / 2.07 | 20 / 2.09 / 2.05 | 20 / 2.09 / 2.13 | 20 / 2.09 / 2.17 |
+| answer | 20 | 19 / 2.6 / 2.34 | 19 / 2.4 / 2.08 | 19 / 2.4 / 2.3 | 20 / 2.5 / 2.42 | 20 / 2.5 / 2.15 |
+| trap-word | 20 | 20 / 2.45 / 2.07 | 20 / 1.85 / 1.82 | 20 / 1.85 / 1.5 | 20 / 1.85 / 1.57 | 20 / 1.8 / 1.54 |
+| foreign | 20 | 20 / 1.75 / 1.81 | 20 / 1.3 / 1.42 | 20 / 1.35 / 1.41 | 20 / 1.2 / 1.07 | 20 / 1.2 / 1.46 |
+| compound | 80 | 80 / 3.26 / 2.85 | 79 / 2.42 / 2.33 | 79 / 2.35 / 2.08 | 79 / 2.31 / 2.29 | 79 / 2.34 / 2.28 |
+| undo | 21 | 20 / 2.14 / 1.56 | 21 / 2.24 / 1.62 | 20 / 2.05 / 1.4 | 20 / 2.0 / 1.41 | 20 / 2.05 / 1.54 |
+| no-edit | 20 | 20 / 1.05 / 0.84 | 20 / 1.0 / 0.87 | 20 / 1.05 / 0.89 | 20 / 1.05 / 0.85 | 20 / 1.0 / 0.89 |
+| new-trip | 88 | 87 / 2.61 / 2.39 | 87 / 1.92 / 1.79 | 88 / 1.84 / 1.68 | 87 / 1.82 / 1.73 | 87 / 1.89 / 1.78 |
+| hinglish | 150 | 149 / 2.61 / 2.02 | 149 / 2.05 / 1.69 | 149 / 2.0 / 1.67 | 150 / 2.01 / 1.62 | 150 / 2.05 / 1.65 |
+| english | 150 | 146 / 2.59 / 2.22 | 146 / 2.0 / 1.64 | 146 / 1.97 / 1.63 | 145 / 1.93 / 1.73 | 145 / 1.93 / 1.72 |
+| long | 22 | 21 / 2.82 / 3.44 | 21 / 2.14 / 2.16 | 22 / 2.14 / 1.99 | 21 / 2.0 / 2.01 | 21 / 1.95 / 1.85 |
+
+### Wrong hints that became stops
+
+None.
+
+### Examples whose gold is a question (same-name, region)
+
+| arm | examples | asked | LLM steps when it asked (mean) | steps histogram |
+|---|---|---|---|---|
+| 1-v24 | 26 | 23 | 2.0 | {2: 23} |
+| 2-exact | 26 | 23 | 1.48 | {1: 12, 2: 11} |
+| 3-fuzzy85 | 26 | 24 | 1.54 | {1: 12, 2: 11, 3: 1} |
+| 3-fuzzy90 | 26 | 23 | 1.48 | {1: 12, 2: 11} |
+| 3-fuzzy95 | 26 | 23 | 1.48 | {1: 12, 2: 11} |
+
+<!-- LLM:END -->

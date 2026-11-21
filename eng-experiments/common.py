@@ -175,8 +175,8 @@ def run_examples(name: str, variants: list[Variant], examples: list[dict], model
     out_dir = out_dir or HERE / "results"
     out_dir.mkdir(parents=True, exist_ok=True)
     stamp = time.strftime("%Y%m%d-%H%M%S")
-    base = out_dir / f"{name}-{model.replace('/', '-')}-{stamp}"
-    log = base.with_suffix(".turns.jsonl")
+    base = f"{name}-{model.replace('/', '-')}-{stamp}"      # no with_suffix(): model ids contain dots
+    log = out_dir / f"{base}.turns.jsonl"
     rows = []
     for n, ex in enumerate(examples, 1):
         for v in variants:                                     # interleaved: every arm on this example
@@ -191,8 +191,8 @@ def run_examples(name: str, variants: list[Variant], examples: list[dict], model
             "examples": len(examples), "places": len(places.load()),
             "arms": [{"name": v.name, "prompt": Path(v.prompt_file).stem if v.prompt_file else agent.PROMPT_VERSION,
                       "notes": v.notes} for v in variants]}
-    base.with_suffix(".json").write_text(json.dumps({"meta": meta, "rows": rows}, indent=1, ensure_ascii=False))
-    print(f"saved {base.with_suffix('.json')}")
+    (out_dir / f"{base}.json").write_text(json.dumps({"meta": meta, "rows": rows}, indent=1, ensure_ascii=False))
+    print(f"saved {out_dir / f'{base}.json'}")
     return rows
 
 
@@ -326,3 +326,23 @@ def summarize(rows: list[dict], arms: list[str]) -> dict:
                   "llm_call_ms": percentiles([ms for r in rs for ms in r["llm_ms"]]),
                   "errors": sum(bool(r["error"]) for r in rs)}
     return out
+
+
+def frame(rows: list[dict], arms: list[str]):
+    """Per-arm numbers as a pandas DataFrame (for the notebooks)."""
+    import pandas as pd
+    s = summarize(rows, arms)
+    return pd.DataFrame([{"arm": a, "turns": v["turns"], "passed": v["passed"], "pass_rate": v["pass_rate"],
+                          "steps_mean": v["steps_mean"], "resolve_calls_mean": v["resolve_calls_mean"],
+                          "input_tok_mean": v["input_tokens_mean"], "cached_tok_mean": v["cached_tokens_mean"],
+                          "output_tok_mean": v["output_tokens_mean"], "cost_usd": v["cost_usd_total"],
+                          "turn_s_p50": v["turn_seconds"]["p50"], "turn_s_p90": v["turn_seconds"]["p90"],
+                          "turn_s_p95": v["turn_seconds"]["p95"],
+                          "turn_s_p99_or_max": v["turn_seconds"].get("p99", v["turn_seconds"].get("max")),
+                          "llm_call_ms_p50": v["llm_call_ms"]["p50"], "errors": v["errors"]}
+                         for a, v in s.items()]).set_index("arm")
+
+
+def latest(results_dir: Path, pattern: str) -> Path | None:
+    files = sorted(results_dir.glob(pattern), key=lambda f: f.stat().st_mtime)
+    return files[-1] if files else None

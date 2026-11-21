@@ -38,6 +38,7 @@ USD_CALL = {"openai/gpt-5.4-nano": 0.0004, "sarvam/gemma4": 0.0013, "sarvam/deep
             "groq/openai/gpt-oss-120b": 0.0005, "groq/openai/gpt-oss-20b": 0.0003, "groq/qwen/qwen3.8-27b": 0.003}
 USD_TURN = {"openai/gpt-5.4-nano": 0.0007, "sarvam/gemma4": 0.0018, "sarvam/deepseekv4.1-flash-1017": 0.0002,
             "groq/openai/gpt-oss-120b": 0.0008, "groq/openai/gpt-oss-20b": 0.0004, "groq/qwen/qwen3.8-27b": 0.008}
+REFUSED = ("RateLimitError", "APITimeoutError", "APIConnectionError", "InternalServerError")
 TAGS = ("new-trip", "add", "remove", "replace", "move", "compound", "position", "undo", "clear", "round-trip",
         "typo", "alias", "tourist", "same-name", "region", "answer", "foreign", "trap-word", "no-edit", "many-stops")
 
@@ -145,6 +146,8 @@ def report() -> None:
     pass_files = sorted(RESULTS.glob("passrate-*.jsonl"))
     lat = [json.loads(l) for f in lat_files for l in f.read_text().splitlines()]
     pas = [json.loads(l) for f in pass_files for l in f.read_text().splitlines()]
+    if not lat and not pas:
+        return "No results yet."
     models = list(dict.fromkeys([r["model"] for r in lat] + [r["model"] for r in pas]))
     rows = []
     for m in models:
@@ -165,24 +168,33 @@ def report() -> None:
                                     "p50 95% CI", "p90 ms", "p95 ms", "p99 or max ms", "input tok p50 (provider)",
                                     "cached share", "output tok p50", "USD / call", "valid tool names"])
     prow = []
+    refused = lambda r: (r.get("error") or "").startswith(REFUSED)
     for m in models:
-        rs = [r for r in pas if r["model"] == m]
-        if not rs:
+        allr = [r for r in pas if r["model"] == m]
+        if not allr:
             continue
+        rs = [r for r in allr if not refused(r)]           # answered turns only
+        n = max(1, len(rs))
         t = common.percentiles([r["seconds"] for r in rs])
-        prow.append([m, len(rs), sum(r["pass"] for r in rs), round(sum(r["pass"] for r in rs) / len(rs), 3),
-                     common._f(sum(r["steps"] or 0 for r in rs) / len(rs)), common._f(t["p50"]), common._f(t["p90"]),
+        prow.append([m, len(allr), len(allr) - len(rs), sum(r.get("retried", False) for r in allr), len(rs),
+                     sum(r["pass"] for r in rs), round(sum(r["pass"] for r in rs) / n, 3),
+                     common._f(sum(r["steps"] or 0 for r in rs) / n), common._f(t.get("p50")), common._f(t.get("p90")),
                      common._f(t.get("p99", t.get("max"))),
-                     common._f(sum(r["cost_usd"] or 0 for r in rs) / len(rs), 6), sum(bool(r["error"]) for r in rs)])
-    pas_md = common.md_table(prow, ["model", "turns", "passed", "pass rate", "LLM steps / turn", "turn s p50",
-                                    "p90", "p99 or max", "USD / turn", "errors"]) if prow else "Not run yet."
+                     common._f(sum(r["cost_usd"] or 0 for r in rs) / n, 6), sum(bool(r["error"]) for r in rs)])
+    pas_md = common.md_table(prow, ["model", "turns", "refused by provider", "rerun", "answered", "passed",
+                                    "pass rate (of answered)", "LLM steps / turn", "turn s p50", "p90",
+                                    "p99 or max", "USD / turn", "model errors"]) if prow else "Not run yet."
     files = ", ".join(f"`{f.name}`" for f in lat_files + pass_files)
     body = (f"Files: {files or 'none'}. Commit {common.git_meta()['commit']}.\n\n### One step-1 call per example "
             f"(same request for every model)\n\n{lat_md}\n\n### Full agent turn on the same examples\n\n"
-            f"Turn seconds include Groq's own queueing only when a call waited server-side; the pause between "
-            f"turns is not counted.\n\n{pas_md}\n")
+            f"Refused by provider = the turn ended on a 429 / timeout / connection / 5xx error (not scored); "
+            f"rerun = provider-refused or slept-through turns run again with `retry.py` (counted under their new "
+            f"result). Model errors = other errors on answered turns (e.g. a 400 for a malformed tool call), "
+            f"scored as failures. Turn seconds include Groq's own queueing only when a call waited server-side; "
+            f"the pause between turns is not counted.\n\n{pas_md}\n")
     common.write_section(HERE / "README.md", "RESULTS", body)
     print(body)
+    return body
 
 
 def main():

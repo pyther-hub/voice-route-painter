@@ -647,13 +647,60 @@ def build_layers(ways=None, india=None) -> None:
         print(f"{path.name}: ranks {ranks}, {n} lines in {len(feats)} tiles ({path.stat().st_size / 1e6:.1f} MB)")
 
 
+def build_borders() -> None:
+    """static/states.geojson: the borders BETWEEN two states, from the same OpenStreetMap file as the roads.
+    In OSM a state is a relation (boundary=administrative, admin_level=4) made of ways, and a way shared by two states
+    is their common border. Ways that belong to one state only are the coast or the country's edge: the India outline
+    already draws those. Build-only (osmium + shapely), like the road layers."""
+    import osmium
+    from shapely.geometry import LineString, MultiLineString, mapping
+    owners: dict[int, set[int]] = {}                        # way id -> the state relations it belongs to
+    for r in osmium.FileProcessor(str(OSM_PATH), osmium.osm.RELATION).with_filter(
+            osmium.filter.TagFilter(("boundary", "administrative"))):
+        if r.tags.get("admin_level") == "4":
+            for m in r.members:
+                if m.type == "w":
+                    owners.setdefault(m.ref, set()).add(r.id)
+    shared = {w for w, rels in owners.items() if len(rels) >= 2}
+    ways = [[n.ref for n in w.nodes] for w in
+            osmium.FileProcessor(str(OSM_PATH), osmium.osm.WAY).with_filter(osmium.filter.IdFilter(shared))]
+    need = {n for refs in ways for n in refs}
+    loc = {n.id: (n.location.lon, n.location.lat) for n in
+           osmium.FileProcessor(str(OSM_PATH), osmium.osm.NODE).with_filter(osmium.filter.IdFilter(need))}
+    from shapely.ops import linemerge
+    pieces = [LineString([loc[n] for n in refs if n in loc]) for refs in ways if len(refs) > 1]
+    merged = linemerge([l for l in pieces if len(l.coords) > 1])      # ways joined end to end: long lines, not 6,000 bits
+    merged = list(merged.geoms) if hasattr(merged, "geoms") else [merged]
+
+    def smooth(line, rounds=2):
+        """Chaikin corner cutting: every corner is replaced by two points a quarter of the way along its sides, so a
+        jagged border turns into a soft curve. The two end points stay where they are (borders must still meet)."""
+        pts = list(line.coords)
+        for _ in range(rounds):
+            new = [pts[0]]
+            for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+                new += [(0.75 * x0 + 0.25 * x1, 0.75 * y0 + 0.25 * y1), (0.25 * x0 + 0.75 * x1, 0.25 * y0 + 0.75 * y1)]
+            new.append(pts[-1])
+            pts = new
+        return LineString(pts)
+
+    lines = [smooth(l.simplify(0.01)) for l in merged]               # ~1 km first (fewer corners), then smooth
+    lines = [l for l in lines if not l.is_empty and len(l.coords) > 1]
+    out = ROOT / "static" / "states.geojson"
+    out.write_text(json.dumps({"type": "Feature", "properties": {}, "geometry": mapping(MultiLineString(lines))},
+                              separators=(",", ":")))
+    print(f"{len(shared)} shared ways -> {out} ({out.stat().st_size // 1024} KB)")
+
+
 if __name__ == "__main__":
-    if sys.argv[1:] == ["build"]:
+    if sys.argv[1:] == ["borders"]:
+        build_borders()
+    elif sys.argv[1:] == ["build"]:
         build()
     elif sys.argv[1:] == ["layers"]:
         build_layers()
     elif sys.argv[1:] == ["pack"]:
         pack()
     else:
-        print("usage: python -m app.geo build | layers | pack   (layers = only the map layers, from the cached roads; "
+        print("usage: python -m app.geo build | layers | pack | borders   (layers = only the map layers, from the cached roads; "
               "pack = data/roads.json -> data/roads.bin, the file the server loads)")

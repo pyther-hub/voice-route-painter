@@ -37,7 +37,7 @@ const map = L.map("map", {
   zoomControl: false, zoomSnap: 0.5, zoomDelta: 1, wheelPxPerZoomLevel: 50, minZoom: 3.5, maxZoom: 12,
   maxBounds: [[-2, 58], [42, 106]], maxBoundsViscosity: 0.8,
 });
-map.attributionControl.setPrefix(false).addAttribution("Roads © OpenStreetMap contributors");   // required by the ODbL licence
+map.attributionControl.setPrefix(false).addAttribution("Roads and borders © OpenStreetMap contributors");   // required by the ODbL licence
 map.createPane("land").style.zIndex = 200;
 let tripLayer = L.layerGroup().addTo(map);      // pins + legs + arrows live here; replaced on every render
 const pendingLayer = L.layerGroup().addTo(map); // faint preview pins shown while the agent is still working
@@ -60,6 +60,86 @@ fetch("india.geojson")
     if (!fitDone) map.fitBounds(indiaBounds, { padding: [20, 20] });
   });
 map.setView([22, 80], 4.5);   // fallback view until the outline loads
+
+// State borders: only the lines between two states (the outline already draws the rest), a thin light line, under the roads.
+// Built by `python -m app.geo borders` from OpenStreetMap.
+map.createPane("borders").style.zIndex = 230;
+fetch("states.geojson")
+  .then(r => r.json())
+  .then(geo => L.geoJSON(geo, {
+    renderer: L.canvas({ pane: "borders" }),
+    style: { color: "#b9b3a6", weight: 1.1, opacity: 0.9, lineCap: "round", lineJoin: "round", smoothFactor: 0.5 },
+    interactive: false,
+  }).addTo(map))
+  .catch(() => {});                       // the map works without them
+
+// ---- Place names ----
+// static/places-labels.json = [name, lat, lon, population] for every place, biggest first (built by
+// `python -m app.places labels`). Names are drawn on one canvas that sits above the roads and under the trip.
+// How many names fit on the screen grows with the zoom: N = NAMES_BASE * 1.4^(zoom - 3.5) * boost, and the N biggest
+// places inside the view get a name. (Whole India, zoom 4.5 -> ~20 names; zoom 6 -> ~40; zoom 8 -> ~90.) Counting
+// only what is in view matters: zoomed in, the biggest towns of India are mostly off screen.
+// The slider (0-100) is the boost: 50 = as above, each 12.5 steps doubles or halves it, 0 = off. On top of that a
+// name is skipped when it would touch a name already drawn or a trip pin, so crowded areas thin out by themselves.
+const NAMES_BASE = 14;
+let nameLevel = 50;
+try { const v = parseInt(localStorage.getItem("namesLevel"), 10); if (v >= 0 && v <= 100) nameLevel = v; } catch (e) {}
+let allNames = [];
+map.createPane("names").style.zIndex = 350;
+const nameCanvas = L.DomUtil.create("canvas", "names-canvas", map.getPane("names"));
+nameCanvas.style.position = "absolute";
+
+fetch("places-labels.json").then(r => r.json()).then(rows => { allNames = rows; drawNames(); }).catch(() => {});
+
+function drawNames() {
+  const size = map.getSize(), dpr = window.devicePixelRatio || 1;
+  nameCanvas.width = size.x * dpr; nameCanvas.height = size.y * dpr;
+  nameCanvas.style.width = size.x + "px"; nameCanvas.style.height = size.y + "px";
+  L.DomUtil.setPosition(nameCanvas, map.containerPointToLayerPoint([0, 0]));   // keep it over the visible area
+  const ctx = nameCanvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, size.x, size.y);
+  if (!allNames.length || nameLevel === 0) { $("names-val").textContent = nameLevel === 0 ? "Off" : ""; return; }
+
+  const allowed = Math.round(NAMES_BASE * Math.pow(1.4, map.getZoom() - 3.5) * Math.pow(2, (nameLevel - 50) / 12.5));
+
+  // Trip pins, suggestion pins and option pins are already named: keep clear of them.
+  const taken = [];
+  [tripLayer, askLayer, sugLayer, pendingLayer].forEach(g => g.eachLayer(m => {
+    if (!m.getLatLng) return;
+    const p = map.latLngToContainerPoint(m.getLatLng());
+    taken.push({ x0: p.x - 14, x1: p.x + 14, y0: p.y - 14, y1: p.y + 14 });
+  }));
+  const free = b => !taken.some(o => b.x0 < o.x1 && o.x0 < b.x1 && b.y0 < o.y1 && o.y0 < b.y1);
+
+  ctx.font = "500 11px Inter, -apple-system, sans-serif";
+  ctx.textBaseline = "middle"; ctx.lineJoin = "round"; ctx.lineWidth = 3;
+  const bounds = map.getBounds().pad(0.02);
+  let shown = 0;
+  for (const [name, lat, lon] of allNames) {                         // biggest first
+    if (shown >= allowed) break;
+    if (!bounds.contains([lat, lon])) continue;
+    const p = map.latLngToContainerPoint([lat, lon]);
+    const box = { x0: p.x - 4, x1: p.x + 10 + ctx.measureText(name).width + 2, y0: p.y - 8, y1: p.y + 8 };
+    if (!free(box)) continue;
+    taken.push(box);
+    shown++;
+    ctx.fillStyle = "#8a8a8a";
+    ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.95)"; ctx.strokeText(name, p.x + 7, p.y);   // white halo so text reads over roads
+    ctx.fillStyle = "#555"; ctx.fillText(name, p.x + 7, p.y);
+  }
+  $("names-val").textContent = `${shown} names`;
+}
+map.on("movestart zoomstart", () => { nameCanvas.style.visibility = "hidden"; });   // a stretched canvas would look wrong
+map.on("moveend zoomend resize", () => { nameCanvas.style.visibility = ""; drawNames(); });
+
+$("names-range").value = nameLevel;
+$("names-range").addEventListener("input", e => {
+  nameLevel = +e.target.value;
+  try { localStorage.setItem("namesLevel", String(nameLevel)); } catch (err) {}
+  drawNames();
+});
 
 // Roads from OpenStreetMap (built by `python -m app.geo layers`), drawn the way Google Maps does it:
 // highways amber with a darker edge, other roads white with a grey edge, and only the important ones when zoomed out.
@@ -177,11 +257,24 @@ const STATUS_TEXT = { idle: "Ready", listening: "Listening…", transcribing: "T
                       offline: "Offline" };
 const PLACEHOLDER = matchMedia("(max-width: 760px)").matches ? "Type your trip…"   // phone: the example doesn't fit
                   : "Type your trip… e.g. Lucknow se Jaipur, beech mein Agra";
-const EXAMPLES = [
+// A pool of example sentences; 3 random ones are shown each time the page opens.
+const EXAMPLE_POOL = [
   "Lucknow se Jaipur jaana hai, beech mein Agra",
   "Delhi to Manali and back",
   "Varanasi se Udaipur, raste mein kya dekh sakte hain?",
+  "Mumbai se Goa jaana hai, raste mein Pune",
+  "Bangalore to Mysore to Ooty",
+  "Chennai se Pondicherry, wapas Chennai",
+  "Kolkata se Darjeeling jaana hai",
+  "Hyderabad to Hampi, stop at Kurnool",
+  "Delhi se Amritsar, beech mein Chandigarh",
+  "Jaipur se Jodhpur, phir Jaisalmer",
+  "Ahmedabad to Udaipur via Mount Abu",
+  "Dehradun se Rishikesh, phir Haridwar",
 ];
+const EXAMPLES = EXAMPLE_POOL.map(t => [Math.random(), t])   // shuffle, then take 3
+                             .sort((a, b) => a[0] - b[0])
+                             .slice(0, 3).map(p => p[1]);
 
 // ---- Animation timings (milliseconds) ----
 // The trip draws in order (pin, line, pin, …), but a whole new trip takes at most DRAW_BUDGET_MS:
@@ -225,6 +318,7 @@ function render(s) {
   drawQuestion(s);
   drawSuggestions(s);
   drawFollowups(s);
+  drawProposal(s);
   drawExamples(s);
   drawTools(s);
   // While a turn runs, a new message waits for it (the server runs one turn at a time): say so.
@@ -367,6 +461,26 @@ function arrowMarker(points, fresh, delay) {
   });
 }
 
+// A road driven both ways (A -> B -> A) would be drawn twice on the same pixels and look like one trip. Such legs are
+// moved OVERLAP_PX to the left of their travel direction (India drives on the left), so the two ways sit side by side.
+// The shift is in screen pixels, so it is worked out again after every zoom.
+const OVERLAP_PX = 3;
+let sideLines = [];   // [{line, points, arrow}] for the legs that share their road with another leg
+function shiftLeft(points) {
+  const pts = points.map(p => map.latLngToLayerPoint(p));
+  return pts.map((p, i) => {
+    const a = pts[Math.max(0, i - 2)], b = pts[Math.min(pts.length - 1, i + 2)];   // direction over a few points: steadier
+    const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+    return map.layerPointToLatLng(L.point(p.x + dy / len * OVERLAP_PX, p.y - dx / len * OVERLAP_PX));
+  });
+}
+map.on("zoomend", () => sideLines.forEach(o => {
+  const moved = shiftLeft(o.points);
+  o.line.setLatLngs(moved);
+  tripLayer.removeLayer(o.arrow);
+  o.arrow = arrowMarker(moved, false, 0).addTo(tripLayer);
+}));
+
 // Draw a line "growing" from its start: hide it, then at `delay` animate its dash offset to 0.
 function animateLine(line, delay, ms) {
   const el = line.getElement();
@@ -396,6 +510,11 @@ function drawMap(s, fresh, startDelay) {
   });
   setTimeout(() => old.remove(), 300);
   tripLayer = L.layerGroup().addTo(map);
+  sideLines = [];
+  const pairCount = {};   // how many legs use the same two stops (either direction)
+  s.trip.stops.forEach((stop, i) => {
+    if (i) { const k = [s.trip.stops[i - 1].id, stop.id].sort().join(); pairCount[k] = (pairCount[k] || 0) + 1; }
+  });
 
   // Speed up the steps when there are many, so the whole drawing fits in DRAW_BUDGET_MS.
   const pins = s.trip.stops.filter(x => fresh.freshStops.has(x.id)).length;
@@ -411,13 +530,16 @@ function drawMap(s, fresh, startDelay) {
       const a = s.trip.stops[i - 1];
       const isFresh = fresh.freshLegs.has(legKey(a, stop));
       const leg = s.trip.legs[i - 1];
-      const points = leg.path || [[a.lat, a.lon], [stop.lat, stop.lon]];
+      const raw = leg.path || [[a.lat, a.lon], [stop.lat, stop.lon]];
+      const shared = pairCount[[a.id, stop.id].sort().join()] > 1;
+      const points = shared ? shiftLeft(raw) : raw;
       // Hovering a line shows the leg (sticky = the tooltip follows the mouse along the line).
-      const line = L.polyline(points, { color: ROUTE_COLOR, weight: isSel("leg", i - 1) ? 6 : 4 })
+      const line = L.polyline(points, { color: ROUTE_COLOR, weight: isSel("leg", i - 1) ? 6 : 4, className: "trip-el" })
         .bindTooltip(`${a.name} → ${stop.name}: ~${leg.km} km, ${fmtTime(leg.car_min)}`, { sticky: true })
         .on("click", () => select("leg", i - 1))
         .addTo(tripLayer);
-      arrowMarker(points, isFresh, t + legMs).addTo(tripLayer);
+      const arrow = arrowMarker(points, isFresh, t + legMs).addTo(tripLayer);
+      if (shared) sideLines.push({ line, points: raw, arrow });
       if (isFresh) { animateLine(line, t, legMs); t += legMs; }
     }
 
@@ -447,6 +569,7 @@ function declutterLabels() {
     const label = el && el.querySelector(".pin-name");
     if (label) pins.push({ m, label, prio: m.options.prio ?? (g === 1 ? 1 : 0), p: map.latLngToContainerPoint(m.getLatLng()) });
   }));
+  drawNames();   // the name layer keeps clear of whatever pins are on the map now
   pins.sort((a, b) => b.prio - a.prio);   // stable: same priority keeps trip order
   const taken = pins.map(({ p }) => ({ x0: p.x - 11, x1: p.x + 11, y0: p.y - 11, y1: p.y + 11 }));   // the dots
   const free = b => !taken.some(o => b.x0 < o.x1 && o.x0 < b.x1 && b.y0 < o.y1 && o.y0 < b.y1);
@@ -909,6 +1032,211 @@ function drawFollowups(s) {
   });
 }
 
+// ---- Proposal from the frontier planner: state.ui.proposal (a ghost route + a card; NOT the trip) ----
+// kind "itinerary": {title, tagline, stops:[{id,name,state,lat,lon,why}], legs, total_km, total_min, days_estimate,
+//                    reasoning, dropped}  -> red dashed route with numbered ghost pins.
+// kind "compare":   {options:[{key:"A"|"B", label, stops, legs, total_km, total_min, pros, cons}], recommended,
+//                    short_answer}  -> route A red, route B purple, each with a label chip halfway along.
+// Dashed = proposed, solid blue = the trip. The trip is dimmed while a proposal is up. Buttons send
+// {type:"proposal", action:"accept"|"decline"|"remove", option, index}; the server changes the trip (or not).
+const PROPOSAL_COLORS = { itinerary: "#d92d20", A: "#d92d20", B: "#7a5af8" };
+const ASK_MORE = ["Kam din karo", "Aur hill stations", "Budget friendly"];
+map.createPane("proposal").style.zIndex = 450;               // above the trip's lines, under all pins
+const proposalRenderer = L.svg({ pane: "proposal" });
+const proposalLayer = L.layerGroup().addTo(map);
+let lastProposalKey = "null";
+let viewBeforeProposal = null;   // {center, zoom, trip}: put the map back when a proposal is declined
+let ghostPins = [];
+
+function halfwayPoint(points) {   // the point halfway along a line, by distance (same idea as arrowMarker)
+  const px = points.map(p => map.project(L.latLng(p), 0));
+  let total = 0;
+  const seg = px.slice(1).map((p, j) => { const d = p.distanceTo(px[j]); total += d; return d; });
+  let j = 0, run = 0;
+  while (j < seg.length - 1 && run + seg[j] < total / 2) run += seg[j++];
+  const a = px[j], b = px[j + 1] || px[j], f = seg[j] ? (total / 2 - run) / seg[j] : 0;
+  return map.unproject(L.point(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f), 0);
+}
+
+function routePoints(route) {     // all points of a route, leg after leg (straight line where a leg has no path)
+  const pts = [];
+  route.legs.forEach((leg, i) => {
+    const a = route.stops[i], b = route.stops[i + 1];
+    pts.push(...(leg.path || [[a.lat, a.lon], [b.lat, b.lon]]));
+  });
+  return pts;
+}
+
+function drawGhostRoute(route, color, numbered) {
+  route.legs.forEach((leg, i) => {
+    const a = route.stops[i], b = route.stops[i + 1];
+    L.polyline(leg.path || [[a.lat, a.lon], [b.lat, b.lon]],
+               { color, weight: 4, dashArray: "8 7", lineCap: "round", renderer: proposalRenderer, interactive: false })
+      .addTo(proposalLayer);
+  });
+  if (!numbered) return;
+  route.stops.forEach((st, i) => {
+    const m = L.marker([st.lat, st.lon], {
+      icon: L.divIcon({
+        className: "pin-wrap ghost-wrap",
+        html: `<div class="pin ghost pop" style="--c:${color};animation-delay:${i * 60}ms"><span class="pin-num">${i + 1}</span>` +
+              `<span class="pin-name">${escapeHtml(st.name)}</span></div>`,
+        iconSize: [22, 22], iconAnchor: [11, 11],
+      }),
+      zIndexOffset: 500,
+    }).addTo(proposalLayer);
+    ghostPins.push(m);
+  });
+}
+
+function drawProposal(s) {
+  const p = s.ui.proposal;
+  const key = JSON.stringify(p);
+  $("stops").hidden = !!p;                              // the proposal card takes the trip card's place
+  if (key === lastProposalKey) return;
+  const wasShown = lastProposalKey !== "null";
+  lastProposalKey = key;
+  proposalLayer.clearLayers();
+  ghostPins = [];
+  const box = $("proposal");
+  box.innerHTML = "";
+  box.hidden = !p;
+  $("map").classList.toggle("proposing", !!p);
+  const tripKey = s.trip.stops.map(x => x.id).join(",");
+  if (!p) {
+    // Declined (trip unchanged): go back to where the map was. Accepted: the trip's own fit takes over.
+    if (viewBeforeProposal && viewBeforeProposal.trip === tripKey)
+      map.flyTo(viewBeforeProposal.center, viewBeforeProposal.zoom, { duration: FLY_MS / 1000 });
+    viewBeforeProposal = null;
+    return;
+  }
+  if (!wasShown) viewBeforeProposal = { center: map.getCenter(), zoom: map.getZoom(), trip: tripKey };
+
+  const routes = p.kind === "itinerary" ? [p] : p.options;
+  // The recommended option is drawn last, so it sits on top where the two share a road.
+  const order = p.kind === "compare" ? [...routes].sort((a, b) => (a.key === p.recommended) - (b.key === p.recommended)) : routes;
+  order.forEach(r => {
+    const color = PROPOSAL_COLORS[p.kind === "itinerary" ? "itinerary" : r.key];
+    drawGhostRoute(r, color, p.kind === "itinerary");
+    if (p.kind === "compare" && r.stops.length > 1) {
+      L.marker(halfwayPoint(routePoints(r)), {
+        interactive: false, keyboard: false, zIndexOffset: 800,
+        icon: L.divIcon({ className: "route-chip-wrap", iconSize: [0, 0],
+                          html: `<div class="route-chip ${r.key === "A" ? "left" : "right"}" style="--c:${color}">${escapeHtml(r.key)} · ${escapeHtml(r.label)} · ${Math.round(r.total_min / 60)} h</div>` }),
+      }).addTo(proposalLayer);
+    }
+  });
+  const pts = routes.flatMap(r => r.stops.map(x => [x.lat, x.lon]));
+  if (pts.length) map.flyToBounds(L.latLngBounds(pts), { paddingTopLeft: [60, 60], paddingBottomRight: [80, 60],
+                                                         maxZoom: 7, duration: FLY_MS / 1000 });
+  if (p.kind === "itinerary") buildItineraryCard(p, box); else buildCompareCard(p, box);
+  // Phone: the side panel sits under the map, so a new proposal's card (and its buttons) would be off screen.
+  // Bring it up once the map has flown to the ghost route.
+  if (!wasShown && window.matchMedia("(max-width: 760px)").matches)
+    setTimeout(() => box.scrollIntoView({ behavior: "smooth", block: "start" }), FLY_MS + 300);
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;           // textContent: everything here comes from a model
+  return e;
+}
+
+function proposalButtons(box, buttons) {
+  const row = el("div", "prop-actions");
+  buttons.forEach(([label, cls, onClick]) => { const b = el("button", cls, label); b.onclick = onClick; row.appendChild(b); });
+  const more = el("div", "prop-more");
+  more.hidden = true;
+  ASK_MORE.forEach(t => { const c = el("button", "chip", t); c.onclick = () => send({ type: "text", text: t }); more.appendChild(c); });
+  box.append(row, more);
+  return () => { more.hidden = !more.hidden; $("text").focus(); };
+}
+
+function buildItineraryCard(p, box) {
+  const head = el("div", "prop-head");
+  head.append(el("p", "label", "PROPOSED TRIP"), el("span", "prop-badge", "Planner"));
+  box.append(head, el("h2", "prop-title", p.title));
+  if (p.tagline) box.appendChild(el("p", "prop-tagline", p.tagline));
+  const list = el("ol", "prop-stops");
+  p.stops.forEach((st, i) => {
+    const li = el("li", "prop-stop");
+    const num = el("span", "prop-num", String(i + 1));
+    const body = el("div", "prop-body");
+    const name = el("div", "prop-name", st.name);
+    name.appendChild(el("span", "", ` ${st.state}`));
+    body.appendChild(name);
+    if (st.why) body.appendChild(el("div", "prop-why", st.why));
+    const x = el("button", "prop-x", "✕");
+    x.title = `Remove ${st.name} from the plan`;
+    x.onclick = () => send({ type: "proposal", action: "remove", index: i });
+    li.append(num, body, x);
+    // Hovering a row lights up its pin on the map.
+    const pinEl = () => ghostPins[i] && ghostPins[i].getElement();
+    li.onmouseenter = () => { const e = pinEl(); if (e) e.classList.add("hl"); };
+    li.onmouseleave = () => { const e = pinEl(); if (e) e.classList.remove("hl"); };
+    list.appendChild(li);
+  });
+  box.appendChild(list);
+  const days = p.days_estimate ? ` · ~${p.days_estimate} ${p.days_estimate === 1 ? "day" : "days"}` : "";
+  box.appendChild(el("p", "prop-total", `~${p.total_km} km · ${fmtTime(p.total_min)} driving${days}`));
+  if (p.reasoning) box.appendChild(el("p", "prop-reason", p.reasoning));
+  if (p.dropped && p.dropped.length) box.appendChild(el("p", "prop-reason", `Not in our place list: ${p.dropped.join(", ")}`));
+  const toggleMore = proposalButtons(box, [
+    ["✓ Accept", "prop-accept", () => send({ type: "proposal", action: "accept" })],
+    ["Decline", "prop-plain", () => send({ type: "proposal", action: "decline" })],
+    ["Ask more", "prop-plain", () => toggleMore()],
+  ]);
+}
+
+function buildCompareCard(p, box) {
+  const head = el("div", "prop-head");
+  head.append(el("p", "label", "COMPARE ROUTES"), el("span", "prop-badge", "Planner"));
+  box.appendChild(head);
+  if (p.short_answer) box.appendChild(el("p", "prop-tagline", p.short_answer));
+  const cols = el("div", "prop-cols");
+  p.options.forEach(o => {
+    const col = el("div", "prop-col" + (o.key === p.recommended ? " rec" : ""));
+    col.style.setProperty("--c", PROPOSAL_COLORS[o.key]);
+    const t = el("div", "prop-col-title");
+    t.append(el("span", "prop-dot"), el("span", "", `${o.key} · ${o.label}`));
+    col.appendChild(t);
+    if (o.key === p.recommended) col.appendChild(el("span", "prop-rec", "Recommended"));
+    col.appendChild(el("p", "prop-via", o.stops.map(x => x.name).join(" → ")));
+    col.appendChild(el("p", "prop-stats", `${o.total_km} km · ${fmtTime(o.total_min)}`));
+    const ul = el("ul", "prop-pc");
+    o.pros.forEach(x => ul.appendChild(el("li", "pro", x)));
+    o.cons.forEach(x => ul.appendChild(el("li", "con", x)));
+    col.appendChild(ul);
+    cols.appendChild(col);
+  });
+  box.appendChild(cols);
+  const toggleMore = proposalButtons(box, [
+    ["Choose A", "prop-accept", () => send({ type: "proposal", action: "accept", option: "A" })],
+    ["Choose B", "prop-accept b", () => send({ type: "proposal", action: "accept", option: "B" })],
+    ["Keep current", "prop-plain", () => send({ type: "proposal", action: "decline" })],
+    ["Ask more", "prop-plain", () => toggleMore()],
+  ]);
+}
+
+// ---- Spoken lines (voice turns only): {type:"speech", mime, data}. Played one after another. ----
+let speechQueue = [], speaking = null;
+function playSpeech(msg) {
+  speechQueue.push(`data:${msg.mime};base64,${msg.data}`);
+  if (!speaking) playNextSpeech();
+}
+function playNextSpeech() {
+  const src = speechQueue.shift();
+  if (!src) { speaking = null; return; }
+  speaking = new Audio(src);
+  speaking.onended = speaking.onerror = playNextSpeech;
+  speaking.play().catch(playNextSpeech);         // autoplay blocked: skip it, the text is on screen
+}
+function stopSpeech() {
+  speechQueue = [];
+  if (speaking) { speaking.onended = speaking.onerror = null; speaking.pause(); speaking = null; }
+}
+
 // ---- Question card: the agent asked something and offered options ----
 // state.ui.question = {text, options: [...], spots: [...]}, or null when nothing is pending.
 // Clicking an option's button (or "Choose" in its pin's popup) sends {"type":"choose","text":label}:
@@ -1026,10 +1354,12 @@ function applyProgress(msg) {
   if (msg.event === "start") {
     strip.innerHTML = "";
     strip.classList.add("on");
+    startTrail();
     return false;
   }
   if (msg.event === "end") {
     pendingLayer.clearLayers();
+    finishTrail();
     // Let the last step be seen for a moment, then swap the strip for the reply (both sit in the same slot).
     setTimeout(() => {
       strip.classList.remove("on");
@@ -1050,9 +1380,53 @@ function applyProgress(msg) {
   }
   step.className = "step " + msg.status + (isNew ? " enter" : "");
   step.textContent = msg.label;
+  trailRow(msg);
 
   if (msg.pin && msg.status === "done") showPendingPin(msg.pin);
   return isNew;
+}
+
+// ---- Agent activity card: one row per LLM step / tool call, kept after the turn until the next one starts ----
+let trailStart = 0;
+function startTrail() {
+  $("trail-list").innerHTML = "";
+  $("trail-sum").textContent = "working…";
+  $("trail").hidden = false;
+  trailStart = performance.now();
+}
+
+function trailRow(msg) {
+  if (!msg.kind) return;
+  const list = $("trail-list");
+  let row = list.querySelector(`[data-id="${msg.id}"]`);
+  const isNew = !row;
+  if (isNew) {
+    row = document.createElement("li");
+    row.dataset.id = msg.id;
+    list.appendChild(row);
+  }
+  row.className = `tr ${msg.kind} ${msg.status}` + (isNew ? " enter" : "");
+  row.textContent = "";                                    // textContent only: tool arguments come from the model
+  const add = (parent, tag, cls, text) => {
+    const el = document.createElement(tag); el.className = cls; el.textContent = text; parent.appendChild(el); return el;
+  };
+  add(row, "span", "tr-dot", "");
+  const main = add(row, "div", "tr-main", "");
+  const name = add(main, "div", "tr-name", msg.kind === "llm" ? "Thinking" : msg.name);
+  if (msg.kind === "llm") add(name, "span", "tr-tag", msg.name);
+  if (msg.detail) add(main, "div", "tr-args", msg.detail);
+  if (msg.result) add(main, "div", "tr-res", msg.result);
+  add(row, "span", "tr-ms", msg.ms == null ? "" : msg.ms >= 1000 ? (msg.ms / 1000).toFixed(1) + " s" : msg.ms + " ms");
+  list.scrollTop = list.scrollHeight;
+}
+
+function finishTrail() {
+  const rows = $("trail-list").children.length;
+  const tools = $("trail-list").querySelectorAll(".tr.tool").length;
+  $("trail-sum").textContent = rows
+    ? `${tools} tool call${tools === 1 ? "" : "s"} · ${((performance.now() - trailStart) / 1000).toFixed(1)} s`
+    : "";
+  if (!rows) $("trail").hidden = true;
 }
 
 // A faint dashed pin for a place the agent just found, before the route is drawn.
@@ -1080,6 +1454,7 @@ function connect() {
   ws.onmessage = e => {
     const msg = JSON.parse(e.data);
     if (msg.type === "progress") handleProgress(msg);
+    else if (msg.type === "speech") playSpeech(msg);
     else {
       setState(msg);
       if (first) { first = false; restoreModel(msg); }
@@ -1120,6 +1495,7 @@ function setState(newState) {
 }
 
 function send(msg) {
+  if (msg.type === "text" || msg.type === "audio" || msg.type === "choose") stopSpeech();   // a new message: old audio is stale
   if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
 }
 
@@ -1153,6 +1529,7 @@ function setListening(on) {
 }
 
 async function startRecording() {
+  stopSpeech();                 // the user is talking: don't talk over them
   holding = true;
   setListening(true);
   try {

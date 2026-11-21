@@ -121,6 +121,7 @@ def report(path: Path) -> None:
     body = head + "\n\n" + common.report_md(rows, names, TAGS) + "\n" + op_tables(rows, examples)
     common.write_section(HERE / "README.md", "LLM", body)
     print(body)
+    return body
 
 
 def main():

@@ -362,9 +362,23 @@ def build() -> None:
     print(f"NOT FOUND, skipped ({len(missing)}): {missing}")
 
 
+def build_labels() -> None:
+    """static/places-labels.json: [name, lat, lon, population] per place, biggest first. The map's name layer
+    (static/app.js) reads it, so the browser needs no API."""
+    import json as _json
+    rows = sorted(({"n": p["name"], "a": p["lat"], "o": p["lon"], "p": p.get("population") or 0} for p in load()),
+                  key=lambda r: -r["p"])
+    out = Path(__file__).resolve().parent.parent / "static" / "places-labels.json"
+    out.write_text(_json.dumps([[r["n"], round(r["a"], 3), round(r["o"], 3), r["p"]] for r in rows],
+                               ensure_ascii=False, separators=(",", ":")))
+    print(f"{len(rows)} labels -> {out}")
+
+
 if __name__ == "__main__":
     if sys.argv[1:] == ["build"]:
         build()
+    elif sys.argv[1:] == ["labels"]:
+        build_labels()
     else:
         for n in sys.argv[1:]:
             print(n, "->", resolve(n))

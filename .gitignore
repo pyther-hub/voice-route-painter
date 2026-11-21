@@ -4,6 +4,7 @@ __pycache__/
 .DS_Store
 .pytest_cache/
 traces.db
+spend.json
 # GeoNames India dump (70 MB), only needed to rebuild data/places.json:
 # download https://download.geonames.org/export/dump/IN.zip and unzip into raw_data/IN/
 raw_data/IN/IN.txt
@@ -15,3 +16,6 @@ raw_data/osm/
 
 # Pipeline Explorer: a local tool for understanding the code, not part of the app
 pipeline-explorer/
+
+# Recordings for the later audio experiment (eng-experiments exp-04): never committed
+eng-experiments/data/audio/

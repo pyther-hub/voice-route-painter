@@ -6,9 +6,11 @@ limit in the OpenAI and Sarvam dashboards: that is the backstop this file can't 
 Settings come from environment variables (see .env.example); the defaults are safe for a public demo.
 """
 import hmac
+import json
 import os
 import time
 from collections import defaultdict, deque
+from pathlib import Path
 from urllib.parse import urlparse
 
 from app import llm
@@ -26,9 +28,17 @@ ANY_PER_MIN = 60            # every message per IP per minute (clicks included)
 MAX_CONNECTIONS_PER_IP = 4
 MAX_SESSIONS = 200          # open tabs on the whole server (memory)
 
+# The frontier planner costs ~20-50x a cheap step: its own caps, so one visitor can't use up the day's budget.
+FRONTIER_PER_SESSION = int(os.getenv("FRONTIER_PER_SESSION", "5"))     # planner calls per browser tab
+FRONTIER_PER_IP_HOUR = int(os.getenv("FRONTIER_PER_IP_HOUR", "10"))    # planner calls per IP per hour
+
 OVER_LIMIT = "Bahut tez ho gaya, thoda ruk ke dobara try kijiye."
 OVER_BUDGET = "Aaj ka free limit khatam ho gaya. Kal dobara aaiye!"
 OVER_SESSION = "Is session ka limit ho gaya. Page refresh karke naya trip shuru kijiye."
+
+
+FRONTIER_SESSION_LIMIT = "Is session mein planner ka limit ho gaya. Jagah ke naam boliye, main route bana deta hoon."
+FRONTIER_IP_LIMIT = "Planner abhi busy hai, thodi der baad try kijiye. Tab tak jagah ke naam boliye."
 
 
 def llm_cost(usage: dict, model: str) -> float:
@@ -40,9 +50,37 @@ _day = ""
 _day_spent = 0.0
 _session_spent: dict[str, float] = defaultdict(float)
 
+# Deployed (DATA_DIR set, a Fly volume): today's spend is saved to a file after every charge, so a restart or a
+# redeploy can't reset the daily cap. Locally (DATA_DIR unset) it stays in memory, as before, so tests and dev runs
+# never touch a real counter.
+SPEND_PATH = Path(os.environ["DATA_DIR"]) / "spend.json" if os.environ.get("DATA_DIR") else None
+
 
 def _today() -> str:
     return time.strftime("%Y-%m-%d", time.gmtime())
+
+
+def _load_spend() -> None:
+    global _day, _day_spent
+    try:
+        saved = json.loads(SPEND_PATH.read_text())
+        if saved.get("day") == _today():
+            _day, _day_spent = saved["day"], float(saved["usd"])
+    except Exception:                       # no file yet, or unreadable: start the day at 0
+        pass
+
+
+def _save_spend() -> None:
+    try:
+        tmp = SPEND_PATH.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"day": _day, "usd": round(_day_spent, 6)}))
+        os.replace(tmp, SPEND_PATH)         # atomic: a crash mid-write never leaves half a file
+    except Exception as e:
+        print(f"[guard] could not save spend (ignored): {e!r}")
+
+
+if SPEND_PATH:
+    _load_spend()
 
 
 def charge(session_id: str, usd: float) -> None:
@@ -52,6 +90,8 @@ def charge(session_id: str, usd: float) -> None:
         _day, _day_spent = _today(), 0.0
     _day_spent += usd
     _session_spent[session_id] += usd
+    if SPEND_PATH:
+        _save_spend()
 
 
 def over_budget(session_id: str) -> str | None:
@@ -81,6 +121,15 @@ def allow(ip: str, kind: str, limit: int, window_s: float = 60.0) -> bool:
         return False
     q.append(now)
     return True
+
+
+def frontier_blocked(ip: str, calls_this_session: int) -> str | None:
+    """None if one more planner call is allowed (and records it for the IP), else the message to show."""
+    if calls_this_session >= FRONTIER_PER_SESSION:
+        return FRONTIER_SESSION_LIMIT
+    if not allow(ip, "frontier", FRONTIER_PER_IP_HOUR, 3600):
+        return FRONTIER_IP_LIMIT
+    return None
 
 
 _connections: dict[str, int] = defaultdict(int)

@@ -17,9 +17,10 @@ from contextlib import contextmanager
 from pathlib import Path
 
 # Viewer: static/trace.html (the "Trace" link in the UI) reads read_trace() via /api/trace/<id>.
-# Raw access:  sqlite3 traces.db "select * from spans"
+# Raw access:  sqlite3 traces.db "select * from spans"   (deployed: fly ssh console, then sqlite3 /data/traces.db)
 
-DB_PATH = Path(__file__).resolve().parent.parent / "traces.db"
+# DATA_DIR = where files that must outlive a deploy live (on Fly: a volume mounted at /data). Unset = project root.
+DB_PATH = Path(os.environ.get("DATA_DIR") or Path(__file__).resolve().parent.parent) / "traces.db"
 PRINT = os.environ.get("TRACE_PRINT", "1") != "0"   # TRACE_PRINT=0 silences the console output
 _current = contextvars.ContextVar("current_span", default=None)
 

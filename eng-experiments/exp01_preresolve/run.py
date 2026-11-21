@@ -27,16 +27,17 @@ TAGS = ("typo", "alias", "same-name", "region", "answer", "trap-word", "foreign"
         "new-trip", "hinglish", "english", "long")
 
 
-def arms(threshold: int) -> list[common.Variant]:
+def arms(thresholds) -> list[common.Variant]:
+    """Arms 1 and 2, then one arm 3 per fuzzy threshold."""
+    thresholds = [thresholds] if isinstance(thresholds, int) else list(thresholds)
     return [
         common.Variant("1-v24", prompt_file=common.prompt("orchestrator_v24"), detected=common.no_detection,
                        notes="no detected_places; resolve_place for every name"),
         common.Variant("2-exact", prompt_file=common.prompt("orchestrator_v25"),
                        detected=matchers.as_detected(matchers.exact), notes="v25: exact names/aliases"),
-        common.Variant(f"3-fuzzy{threshold}", prompt_file=HERE / "prompts" / "orchestrator_v25_fuzzy.md",
-                       detected=matchers.as_detected(lambda t: matchers.exact_fuzzy(t, threshold)),
-                       notes=f"exact + spelling matches >= {threshold}"),
-    ]
+    ] + [common.Variant(f"3-fuzzy{th}", prompt_file=HERE / "prompts" / "orchestrator_v25_fuzzy.md",
+                        detected=matchers.as_detected(lambda t, th=th: matchers.exact_fuzzy(t, th)),
+                        notes=f"exact + spelling matches >= {th}") for th in thresholds]
 
 
 def extra_tables(rows: list[dict], examples: dict) -> str:
@@ -79,11 +80,12 @@ def report(path: Path) -> None:
     body = head + "\n\n" + common.report_md(rows, arm_names, TAGS) + "\n" + extra_tables(rows, examples)
     common.write_section(HERE / "README.md", "LLM", body)
     print(body)
+    return body
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--threshold", type=int, help="fuzzy score for arm 3 (85, 90 or 95; see offline.py)")
+    p.add_argument("--threshold", type=int, nargs="+", help="fuzzy score(s) for arm 3 (85 90 95; see offline.py)")
     p.add_argument("--yes", action="store_true", help="really call the LLM (costs money)")
     p.add_argument("--first", type=int)
     p.add_argument("--only", nargs="*")

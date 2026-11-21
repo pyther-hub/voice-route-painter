@@ -13,6 +13,7 @@
 A turn's history only ever goes to one provider (the model is fixed when the turn starts). The past turns
 (`{role, content}` messages) are valid for both APIs; within a turn each provider appends its own item shapes.
 """
+import json
 import os
 from types import SimpleNamespace
 from typing import NamedTuple
@@ -46,6 +47,12 @@ MODELS = {
     "openai/gpt-5.4-nano": dict(provider="openai", model="gpt-5.4-nano", label="GPT-5.4 nano",
                                 price={"input": 0.20, "cached": 0.02, "output": 1.25},
                                 note="$0.20 / $1.25 per M tokens", effort="low", chips_effort="none", max_out=1500),
+    # The frontier planner (tools.plan_with_frontier), not offered in the UI picker (hidden).
+    # Price checked 2026-11-21 on OpenAI's model page: $2.50 input / $0.25 cached / $15.00 output per M tokens
+    # (prompts over 272k tokens cost more; ours are ~1k).
+    "openai/gpt-5.4": dict(provider="openai", model="gpt-5.4", label="GPT-5.4",
+                           price={"input": 2.50, "cached": 0.25, "output": 15.00},
+                           note="frontier planner", effort="low", chips_effort="none", max_out=3000, hidden=True),
     "sarvam/gemma4": dict(provider="sarvam", model="gemma4", label="Gemma 4 31B",
                           price=_inr(35, 10, 90), note="₹35 / ₹90 per M tokens",
                           effort="low", chips_effort=None, max_out=4000),
@@ -71,6 +78,9 @@ MODELS = {
 DEFAULT = os.getenv("LLM_MODEL") or "openai/gpt-5.4-nano"
 if DEFAULT not in MODELS:
     raise ValueError(f"LLM_MODEL={DEFAULT!r} is not one of {sorted(MODELS)}")
+FRONTIER = os.getenv("FRONTIER_MODEL") or "openai/gpt-5.4"     # the planner the cheap agent escalates to
+if FRONTIER not in MODELS:
+    raise ValueError(f"FRONTIER_MODEL={FRONTIER!r} is not one of {sorted(MODELS)}")
 
 _openai = OpenAI(timeout=TIMEOUT_S, max_retries=1)
 _clients: dict[str, OpenAI] = {}   # other providers, made on first use (tests and CLI runs need no key for them)
@@ -88,7 +98,7 @@ def available() -> list[dict]:
     """The models whose provider key is set, for the UI's picker."""
     return [{"id": k, "provider": m["provider"], "provider_label": PROVIDERS[m["provider"]]["label"],
              "label": m["label"], "note": m["note"]}
-            for k, m in MODELS.items() if os.environ.get(PROVIDERS[m["provider"]]["key"])]
+            for k, m in MODELS.items() if os.environ.get(PROVIDERS[m["provider"]]["key"]) and not m.get("hidden")]
 
 
 def is_available(model_id: str) -> bool:
@@ -142,6 +152,61 @@ def step(model_id: str, instructions: str, items: list[dict], tools: list[dict] 
              for c in (msg.tool_calls or [])]
     # Sent back as returned, so a reasoning model's own fields (e.g. DeepSeek's reasoning_content) go with it.
     return Step(msg.content or "", calls, [msg.model_dump(exclude_none=True)], usage)
+
+
+class StructuredError(ValueError):
+    """structured() got an answer it can't use. The tokens were still spent, so `usage` comes with it.
+    reason: "truncated" (hit max_out, usually reasoning), "refused", or "not_json"; raw = what came back."""
+    def __init__(self, reason: str, usage: dict, raw: str):
+        super().__init__(reason)
+        self.reason, self.usage, self.raw = reason, usage, raw or ""
+
+
+def structured(model_id: str, instructions: str, user_text: str, schema: dict, max_out: int) -> tuple[dict, dict]:
+    """One LLM call that must answer with a JSON object matching `schema` (no tools). Returns (object, usage).
+    OpenAI: strict JSON schema (the API enforces it). Others: JSON mode + the schema in the instructions, so the
+    caller still checks the fields. Raises StructuredError (with the usage) if the answer is not a JSON object;
+    API errors (timeout, 429, 5xx) are raised as they come."""
+    m = MODELS[model_id]
+    if m["provider"] == "openai":
+        kw = {"reasoning": {"effort": m["effort"]}} if m["effort"] else {}
+        resp = _openai.responses.create(
+            model=m["model"], instructions=instructions, input=[{"role": "user", "content": user_text}],
+            max_output_tokens=max_out,
+            text={"format": {"type": "json_schema", "name": "answer", "schema": schema, "strict": True}}, **kw)
+        u = resp.usage
+        details = getattr(u, "input_tokens_details", None)
+        usage = {"input": getattr(u, "input_tokens", 0) or 0, "cached": getattr(details, "cached_tokens", 0) or 0,
+                 "output": getattr(u, "output_tokens", 0) or 0, "total": u.total_tokens}
+        text = resp.output_text
+        truncated = getattr(resp, "status", None) == "incomplete"
+        refused = any(getattr(c, "type", None) == "refusal" for item in resp.output
+                      if getattr(item, "type", None) == "message" for c in (getattr(item, "content", None) or []))
+    else:
+        kw = {PROVIDERS[m["provider"]]["max_param"]: max_out}
+        if m["effort"]:
+            kw["reasoning_effort"] = m["effort"]
+        resp = _client(m["provider"]).chat.completions.create(
+            model=m["model"], response_format={"type": "json_object"}, extra_body=m.get("extra") or None,
+            messages=[{"role": "system", "content": f"{instructions}\n\nAnswer with one JSON object matching this "
+                                                    f"JSON schema:\n{json.dumps(schema)}"},
+                      {"role": "user", "content": user_text}], **kw)
+        u = resp.usage
+        details = getattr(u, "prompt_tokens_details", None)
+        usage = {"input": u.prompt_tokens or 0, "cached": getattr(details, "cached_tokens", 0) or 0,
+                 "output": u.completion_tokens or 0, "total": u.total_tokens or 0}
+        text = resp.choices[0].message.content or ""
+        truncated = resp.choices[0].finish_reason == "length"
+        refused = bool(getattr(resp.choices[0].message, "refusal", None))
+    if refused:
+        raise StructuredError("refused", usage, text)
+    try:
+        obj = json.loads(text)
+    except json.JSONDecodeError as e:
+        raise StructuredError("truncated" if truncated else "not_json", usage, text) from e
+    if not isinstance(obj, dict):
+        raise StructuredError("not_json", usage, text)
+    return obj, usage
 
 
 def tool_output(model_id: str, call_id: str, output: str) -> dict:

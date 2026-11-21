@@ -11,7 +11,7 @@ tools, then the turn's headline is these lines (written here, in code). ask_user
 import json
 import re
 
-from app import geo, places, state
+from app import geo, guard, llm, places, state, tts
 from app.trace import span
 
 MAX_LOOKUPS = 8           # names per resolve_place call (more are skipped, with a note)
@@ -20,7 +20,6 @@ MAX_QUESTION_LEN = 200
 MAX_REPLY_LEN = 300
 MIN_OPTIONS, MAX_OPTIONS = 2, 4
 MAX_OPTION_LEN = 40
-MAX_AGENT_ADDED = 2       # new stops per set_route that the user never named (guardrail)
 OK_SCORE, OK_LEAD = 85, 5   # a spelling guess is "ok" if it scores this much and leads the next one by this much
 ENROUTE_LIMIT = 8         # places suggest_enroute_places shows
 NEARBY_LIMIT = 6          # places suggest_nearby_places shows
@@ -235,7 +234,7 @@ def _write(session_id: str, ids: list[str], line: str) -> dict:
     sess = state.session(session_id)
     state.update_state(session_id, ids, line, save_history=not sess.turn_wrote)   # raises ValueError if invalid
     sess.turn_wrote = True
-    _offer_long_legs(session_id)
+    _offer_long_legs(session_id)          # (a pending proposal was cleared by update_state: the trip changed)
     return {"ok": True, "edit": True, "line": line, "stops": [s["name"] for s in state.trip(session_id)["stops"]]}
 
 
@@ -249,23 +248,8 @@ def _bad_ids(e: ValueError) -> dict:
             "hint": "Use ids from resolve_place or the current stops, and keep at least 2 stops (or clear with set_route([]))."}
 
 
-def _unnamed_new_stops(session_id: str, place_ids: list[str]) -> list[str]:
-    """Names of stops that are new to the trip and that the user never named, in this message or the
-    last few turns (those include the options the agent offered, so picking one is fine)."""
-    sess = state.session(session_id)
-    said = " ".join([sess.current_text] + [t for turn in sess.turns for t in turn])
-    old = set(state.stop_ids(session_id))
-    return [_name(i) for i in place_ids if i not in old and places.get(i) and not places.mentioned(i, said)]
-
-
 def set_route(session_id: str, stops: list[str]) -> dict:
     """Replace the whole route (new trip, full rewrite, or [] to clear)."""
-    added = _unnamed_new_stops(session_id, stops)
-    if len(added) > MAX_AGENT_ADDED:
-        return {"ok": False,
-                "error": f"{len(added)} new stops the user did not name ({', '.join(added)}); at most "
-                         f"{MAX_AGENT_ADDED} allowed",
-                "hint": "Keep the places the user named. For a long drive the app offers towns on the way itself."}
     line = " → ".join(_name(i) for i in stops) if stops else "Cleared the trip."
     try:
         result = _write(session_id, stops, line)
@@ -523,6 +507,348 @@ def dismiss_suggestion(session_id: str, pick) -> None:
 
 # ---------------------------------------------------------------- registry
 
+# ---------------------------------------------------------------- the frontier planner (proposals, never edits)
+# The cheap agent escalates two kinds of request to a bigger model (llm.FRONTIER): planning a whole trip when the
+# user named no stops, and comparing two routes. The answer is a proposal (ui.proposal): a ghost route + card.
+# The trip changes only when the user accepts it (a click, or the agent's accept_proposal).
+
+MAX_FILLER_LEN = 80
+FRONTIER_MAX_OUT = 3000
+FRONTIER_ATTEMPTS = 2     # one retry when the answer is cut off or not JSON (both calls are charged)
+MIN_PLAN_STOPS, MAX_PLAN_STOPS = 3, 8
+
+_ITINERARY_SCHEMA = {
+    "type": "object", "additionalProperties": False,
+    "required": ["title", "tagline", "stops", "reasoning", "days_estimate"],
+    "properties": {
+        "title": {"type": "string"}, "tagline": {"type": "string"},
+        "stops": {"type": "array", "items": {
+            "type": "object", "additionalProperties": False, "required": ["name", "why"],
+            "properties": {"name": {"type": "string"}, "why": {"type": "string"}}}},
+        "reasoning": {"type": "string"}, "days_estimate": {"type": "integer"},
+    },
+}
+_COMPARE_SCHEMA = {
+    "type": "object", "additionalProperties": False,
+    "required": ["recommendation", "options", "short_answer"],
+    "properties": {
+        "recommendation": {"type": "string", "enum": ["A", "B"]},
+        "options": {"type": "array", "items": {
+            "type": "object", "additionalProperties": False, "required": ["key", "label", "pros", "cons"],
+            "properties": {"key": {"type": "string", "enum": ["A", "B"]}, "label": {"type": "string"},
+                           "pros": {"type": "array", "items": {"type": "string"}},
+                           "cons": {"type": "array", "items": {"type": "string"}}}}},
+        "short_answer": {"type": "string"},
+    },
+}
+ITINERARY_PROMPT = (
+    "You plan road trips across India for a voice trip-planning app. From the user's request (English or "
+    f"Hinglish) and their current trip, propose ONE road trip of {MIN_PLAN_STOPS}-{MAX_PLAN_STOPS} stops in "
+    "travel order. Every stop is a town or city in India written as 'Town, State' (not a single temple, fort, "
+    "lake or park: use the town it is in). Road travel only. If the user named places, they are anchors: keep all of "
+    "them, start at the first and end at the last, and fill the middle with the best stops on or near the way. "
+    "If a previous proposal is given and the request "
+    "changes it (fewer days, more hill stations, cheaper), revise that proposal. Each stop's `why`: at most 12 "
+    "words. `title`: at most 40 characters. `tagline`: at most 80 characters. `reasoning`: at most 2 short "
+    "sentences. `days_estimate`: whole days for the trip. Write why, tagline and reasoning in the user's "
+    "language (English, or Hinglish in Latin script).")
+COMPARE_PROMPT = (
+    "You compare two road routes in India for a voice trip-planning app. You get each route's stops plus the road "
+    "km and driving hours the app computed: use those numbers, never others, and do not invent distances. Give "
+    "each option a `label` of at most 20 characters (e.g. 'Coastal', 'Via Kolhapur'), 2-3 `pros` and 2-3 `cons` "
+    "of at most 10 words each, `recommendation` A or B, and a `short_answer` of at most 160 characters that a "
+    "voice reads aloud, in the user's language (Hinglish in Latin script if they wrote Hinglish).")
+
+
+def _route_info(ids: list[str]) -> dict:
+    """Stops + road legs for a list of place ids (same numbers the trip would get). Never writes anything."""
+    found = [places.get(i) for i in ids]
+    legs = []
+    for a, b in zip(found, found[1:]):
+        km, path = geo.leg(a, b)
+        leg = {"km": km, "car_min": round(km / state.CAR_KMH * 60)}
+        if path:
+            leg["path"] = path
+        legs.append(leg)
+    return {"stops": [{"id": p["id"], "name": p["name"], "state": p["state"], "lat": p["lat"], "lon": p["lon"]}
+                      for p in found],
+            "legs": legs, "total_km": round(sum(l["km"] for l in legs)),
+            "total_min": sum(l["car_min"] for l in legs)}
+
+
+def _resolve_names(names: list) -> tuple[list[str], list[str]]:
+    """Place names (as the planner or the agent wrote them) -> (ids in order, names not found). An ambiguous
+    name takes its best match (a 'Town, State' label usually isn't ambiguous). Repeats dropped."""
+    ids, missing = [], []
+    for n in names or []:
+        r = lookup(str(n)) if str(n).strip() else {"status": "not_found"}
+        if r["status"] == "not_found":
+            missing.append(str(n))
+        elif (pid := r["matches"][0]["id"]) not in ids:
+            ids.append(pid)
+    return ids, missing
+
+
+def _proposal_line(p: dict) -> str:
+    """The proposal as the agent's memory sees it (no ids, short)."""
+    if p["kind"] == "itinerary":
+        return f"Proposed trip '{p['title']}': " + " → ".join(x["name"] for x in p["stops"])
+    return "Compared " + "; ".join(f"{o['key']} {o['label']}: " + " → ".join(x["name"] for x in o["stops"])
+                                   for o in p["options"]) + f" (recommended {p['recommended']})"
+
+
+def pending_proposal(session_id: str) -> dict | None:
+    """What the agent's input shows about a pending proposal (names only)."""
+    p = state.session(session_id).proposal
+    if not p:
+        return None
+    if p["kind"] == "itinerary":
+        return {"kind": "itinerary", "title": p["title"], "stops": [x["name"] for x in p["stops"]]}
+    return {"kind": "compare", "recommended": p["recommended"],
+            "options": [{"key": o["key"], "label": o["label"], "stops": [x["name"] for x in o["stops"]]}
+                        for o in p["options"]]}
+
+
+MAX_ANCHORS = 3     # a message naming more places than this has already defined its route: no planner needed
+
+
+def _named_places(text: str) -> list[str]:
+    """Place ids named exactly in the user's text, in the order they were said (no repeats)."""
+    try:
+        ids: list[str] = []
+        for f in sorted(places.find_exact(text), key=lambda f: f["start"]):
+            if f["id"] not in ids:
+                ids.append(f["id"])
+        return ids
+    except Exception:
+        return []
+
+
+def _with_anchors(ids: list[str], anchors: list[str]) -> list[str]:
+    """The plan must keep the places the user named: the first one starts it, the last one ends it (when the user
+    named two or more), and any other named place that the planner left out goes where it adds the fewest km."""
+    ids = list(ids)
+    if len(anchors) >= 2:
+        if anchors[0] not in ids:
+            ids.insert(0, anchors[0])
+        if anchors[-1] not in ids:
+            ids.append(anchors[-1])
+    for a in anchors:
+        if a not in ids:
+            ids = _insert_on_the_way(ids, a) if len(ids) >= 2 else ids + [a]
+    return ids
+
+
+def _strs(value, n: int, length: int) -> list[str]:
+    """A list of short strings from whatever the model sent (a string or a number where a list was expected = [])."""
+    return [str(x)[:length] for x in value if isinstance(x, (str, int, float))][:n] if isinstance(value, list) else []
+
+
+def _ask_frontier(session_id: str, model: str, instructions: str, ask: str, schema: dict,
+                  sp: dict) -> tuple[dict | None, dict]:
+    """The planner call, with one retry if the answer was cut off (more room) or wasn't JSON. Every attempt is
+    charged to the spend cap, including failed ones (the tokens were spent). API errors (timeout, 429, 5xx) are not
+    retried here: the SDK already retried once. Returns (answer or None, usage summed over attempts)."""
+    total = {"input": 0, "cached": 0, "output": 0, "total": 0}
+    attempts, max_out, note = [], FRONTIER_MAX_OUT, ""
+    for _ in range(FRONTIER_ATTEMPTS):
+        try:
+            obj, usage = llm.structured(model, instructions, ask + note, schema, max_out)
+        except llm.StructuredError as e:
+            usage, obj = e.usage, None
+            attempts.append({"failed": e.reason, "raw": e.raw[:500], "max_out": max_out})
+        except Exception as e:                      # network / API: give up cleanly, the turn goes on
+            attempts.append({"failed": f"{type(e).__name__}: {str(e)[:200]}"})
+            break
+        guard.charge(session_id, guard.llm_cost(usage, model))
+        for k in total:
+            total[k] += usage.get(k, 0)
+        if obj is not None:
+            attempts.append({"ok": True, "max_out": max_out})
+            sp["output"] = {"answer": obj, "usage": total, "tokens": total["total"], "model": model,
+                            "attempts": attempts}
+            return obj, total
+        if attempts[-1]["failed"] == "refused":
+            break
+        if attempts[-1]["failed"] == "truncated":
+            max_out = int(max_out * 1.5)            # reasoning used up the room: give it more
+        else:
+            note = "\n(Your last answer was not valid JSON. Answer with the JSON object only.)"
+    sp["output"] = {"answer": None, "usage": total, "tokens": total["total"], "model": model, "attempts": attempts}
+    sp["error"] = "planner failed: " + "; ".join(a.get("failed", "") for a in attempts)
+    return None, total
+
+
+def plan_with_frontier(session_id: str, mode: str, request: str, filler: str,
+                       route_a: list | None = None, route_b: list | None = None) -> dict:
+    """Ask the frontier model for an itinerary or a comparison. Shows a proposal; never changes the trip."""
+    sess = state.session(session_id)
+    request, filler = request.strip(), filler.strip()[:MAX_FILLER_LEN]
+    if sess.frontier_used:
+        return {"ok": False, "error": "the planner was already asked this turn",
+                "hint": "Answer the user with what you have (reply)."}
+    if mode not in ("itinerary", "compare"):
+        return {"ok": False, "error": "mode must be 'itinerary' or 'compare'", "hint": "Fix mode and call again."}
+    if not request:
+        return {"ok": False, "error": "request is empty", "hint": "Pass the user's ask in one line."}
+    anchors = _named_places(sess.current_text) if mode == "itinerary" else []
+    if len(anchors) > MAX_ANCHORS:        # up to 3 named places are anchors for the plan; more = their own route
+        return {"ok": False, "error": f"the user named {len(anchors)} places themselves",
+                "hint": "Build the route from their places with set_route / add_stop instead."}
+    if mode == "compare":
+        a_ids, a_missing = _resolve_names(route_a) if route_a else (state.stop_ids(session_id), [])
+        b_ids, b_missing = _resolve_names(route_b)
+        if a_missing or b_missing:
+            return {"ok": False, "error": f"not in the place list: {a_missing + b_missing}",
+                    "hint": "Use towns from the list (resolve_place), or ask the user."}
+        if len(a_ids) < 2 or len(b_ids) < 2:
+            return {"ok": False, "error": "each route needs at least 2 places (route_a null = the current trip)",
+                    "hint": "Pass both routes as place-name lists in travel order."}
+    if (blocked := guard.over_budget(session_id)):
+        return {"ok": False, "error": "spend cap reached", "hint": f"Tell the user: {blocked}"}
+    if (blocked := guard.frontier_blocked(sess.ip, sess.frontier_calls)):
+        return {"ok": False, "error": "planner limit reached",
+                "hint": f"Tell the user (in their language): {blocked}"}
+
+    sess.frontier_used = True
+    sess.frontier_calls += 1
+    trigger = "comparison" if mode == "compare" else "no_stops_named"
+    state.set_display(session_id, message=filler)
+    state.speak(session_id, filler)                        # voice turns: "ek minute, plan bana raha hoon"
+    model = llm.FRONTIER
+    label = filler or f"Planning with {llm.MODELS[model]['label']}"
+    with span("llm", "frontier", input={"mode": mode, "trigger": trigger, "model": model, "request": request,
+                                        "session": session_id}) as sp, \
+            state.progress_step(session_id, label, kind="llm", name=model, detail=f"trigger: {trigger}") as ui:
+        trip_now = " → ".join(x["name"] for x in state.trip(session_id)["stops"]) or "(empty)"
+        # A voice turn: every text field the user sees or hears is in the language they spoke (detected by STT).
+        lang = (f"\nThe user spoke {tts.write_as(sess.speak_in)}: write every text field in that language."
+                if sess.speak_in else "")
+        if mode == "itinerary":
+            prev = f"\nPrevious proposal: {_proposal_line(sess.proposal)}" if sess.proposal else ""
+            named = ", ".join(f"{_name(i)}, {places.get(i)['state']}" for i in anchors)
+            keep = (f"\nThe user named these places, in this order: {named}. Keep every one of them in the plan; "
+                    "start at the first and end at the last unless the request says otherwise." if anchors else "")
+            ask = f"User: {request}\nCurrent trip: {trip_now}{keep}{prev}{lang}"
+            obj, usage = _ask_frontier(session_id, model, ITINERARY_PROMPT, ask, _ITINERARY_SCHEMA, sp)
+        else:
+            info = {"A": _route_info(a_ids), "B": _route_info(b_ids)}
+            ask = f"User: {request}\n" + "\n".join(
+                f"Route {k}: {' → '.join(x['name'] for x in v['stops'])} | {v['total_km']} km by road, "
+                f"~{v['total_min'] / 60:.1f} h driving" for k, v in info.items()) + lang
+            obj, usage = _ask_frontier(session_id, model, COMPARE_PROMPT, ask, _COMPARE_SCHEMA, sp)
+        state.set_display(session_id, tokens=state.ui(session_id)["tokens"] + usage["total"])
+        if obj is None:
+            ui["status"], ui["result"] = "error", sp["error"][:90]
+            state.set_display(session_id, message="")           # the filler promised a plan that isn't coming
+            return {"ok": False, "error": "the planner could not answer",
+                    "hint": "Apologise in one short sentence in the user's language and offer to build the trip "
+                            "from a few towns they name. Do not call plan_with_frontier again this turn."}
+
+        if mode == "itinerary":
+            raw_stops = [x for x in (obj.get("stops") if isinstance(obj.get("stops"), list) else [])
+                         if isinstance(x, dict) and isinstance(x.get("name"), str)]   # skip malformed stops
+            ids, dropped = _resolve_names([x["name"] for x in raw_stops][:MAX_PLAN_STOPS])
+            ids = _with_anchors(ids, anchors)                  # the user's own places are never dropped
+            if len(ids) < 2:
+                ui["status"], ui["result"] = "error", f"only {len(ids)} known places"
+                return {"ok": False, "error": f"the planner's places aren't in the list: {dropped}",
+                        "hint": "Tell the user with reply, or ask them for a region or a few towns."}
+            why = {}
+            for x in raw_stops:
+                r = lookup(x["name"])
+                if r["status"] != "not_found":
+                    why.setdefault(r["matches"][0]["id"], str(x.get("why", ""))[:100])
+            info = _route_info(ids)
+            for st in info["stops"]:
+                st["why"] = why.get(st["id"], "")
+            proposal = {"kind": "itinerary", "title": str(obj.get("title", ""))[:60],
+                        "tagline": str(obj.get("tagline", ""))[:120], "reasoning": str(obj.get("reasoning", ""))[:300],
+                        "days_estimate": obj.get("days_estimate") if isinstance(obj.get("days_estimate"), int) else None,
+                        "dropped": dropped, **info}
+            ui["result"] = f"{len(ids)} stops · {usage['total']} tokens"
+            reply_text = f"{proposal['title']}: " + " → ".join(x["name"] for x in info["stops"])
+        else:
+            opts = {o.get("key"): o for o in (obj.get("options") if isinstance(obj.get("options"), list) else [])
+                    if isinstance(o, dict)}
+            rec = obj.get("recommendation") if obj.get("recommendation") in ("A", "B") else None
+            proposal = {"kind": "compare", "recommended": rec,
+                        "short_answer": str(obj.get("short_answer", ""))[:200],
+                        "options": [{"key": k, "label": str(opts.get(k, {}).get("label") or f"Route {k}")[:30],
+                                     "pros": _strs(opts.get(k, {}).get("pros"), 3, 80),
+                                     "cons": _strs(opts.get(k, {}).get("cons"), 3, 80),
+                                     **info[k]} for k in ("A", "B")]}
+            ui["result"] = f"recommends {rec or '?'} · {usage['total']} tokens"
+            reply_text = proposal["short_answer"] or f"Route {rec} is better."
+    sess.proposal = proposal
+    state.set_display(session_id, proposal=proposal)
+    # Voice turns hear one short line: the comparison's answer, or the plan's tagline (the card shows the rest).
+    state.speak(session_id, proposal.get("short_answer") or proposal.get("tagline") or proposal.get("title", ""))
+    return {"ok": True, "ends_turn": True, "reply": reply_text, "memory": _proposal_line(proposal)}
+
+
+def _proposal_ids(p: dict, option: str | None) -> list[str] | None:
+    if p["kind"] == "itinerary":
+        return [x["id"] for x in p["stops"]]
+    o = next((o for o in p["options"] if o["key"] == (option or p.get("recommended"))), None)
+    return [x["id"] for x in o["stops"]] if o else None
+
+
+def accept_proposal(session_id: str, option: str | None) -> dict:
+    """The user accepted the pending proposal (or picked option A / B of a comparison): it becomes the trip."""
+    p = state.session(session_id).proposal
+    if not p:
+        return {"ok": False, "error": "no proposal is pending", "hint": "Handle the request normally."}
+    ids = _proposal_ids(p, option)
+    if not ids:
+        return {"ok": False, "error": "pick option 'A' or 'B'", "hint": "Ask the user which one with ask_user."}
+    title = p.get("title") or next(o["label"] for o in p["options"] if [x["id"] for x in o["stops"]] == ids)
+    try:
+        return _write(session_id, ids, f"{title}: " + " → ".join(_name(i) for i in ids))
+    except ValueError as e:
+        return _bad_ids(e)
+
+
+def dismiss_proposal(session_id: str, reply: str) -> dict:
+    """The user turned the pending proposal down by voice or text ("nahi, rehne do"): take it off the screen."""
+    sess = state.session(session_id)
+    reply = reply.strip()
+    if not sess.proposal:
+        return {"ok": False, "error": "no proposal is pending", "hint": "Answer with reply instead."}
+    if not reply or len(reply) > MAX_REPLY_LEN:
+        return {"ok": False, "error": f"reply must be 1-{MAX_REPLY_LEN} characters", "hint": "One short sentence."}
+    sess.proposal = None
+    state.set_display(session_id, proposal=None)
+    return {"ok": True, "ends_turn": True, "reply": reply}
+
+
+def proposal_click(session_id: str, action, option=None, index=None) -> str | None:
+    """Buttons on the proposal card (no LLM): accept / decline / remove a proposed stop. Returns the headline."""
+    sess = state.session(session_id)
+    p = sess.proposal
+    if not p:
+        return None
+    if action == "accept":
+        r = accept_proposal(session_id, option if option in ("A", "B") else None)
+        return r.get("line") if r.get("ok") else None
+    if action == "decline":
+        sess.proposal = None
+        state.set_display(session_id, proposal=None)
+        return "Kept your current trip."
+    if action == "remove" and p["kind"] == "itinerary" and isinstance(index, int) and 0 <= index < len(p["stops"]):
+        keep = [x for i, x in enumerate(p["stops"]) if i != index]
+        if len(keep) < 2:
+            return proposal_click(session_id, "decline")
+        why = {x["id"]: x.get("why", "") for x in keep}
+        info = _route_info([x["id"] for x in keep])
+        for st in info["stops"]:
+            st["why"] = why.get(st["id"], "")
+        sess.proposal = {**p, **info}
+        state.set_display(session_id, proposal=sess.proposal)
+        return f"Removed {p['stops'][index]['name']} from the plan."
+    return None
+
+
 def _schema(properties: dict) -> dict:
     """Strict-mode schema: every property required, nothing extra (optional = may be null)."""
     return {"type": "object", "properties": properties, "required": list(properties),
@@ -615,6 +941,42 @@ TOOLS = {
                         "description": f"{MIN_OPTIONS}-{MAX_OPTIONS} short labels, e.g. 'Aurangabad, Bihar'."},
         }),
     },
+    "plan_with_frontier": {
+        "fn": plan_with_frontier,
+        "description": "Ask a stronger planning model, which shows the user a proposal card (it does not change the "
+                       "route; the user accepts it). mode 'itinerary': plan a whole trip when the user names no "
+                       "stops (a region, a theme, 'koi nayi trip'), or revise a pending itinerary proposal. mode "
+                       "'compare': which of two routes is better. Ends your turn; at most once per turn.",
+        "parameters": _schema({
+            "mode": {"type": "string", "enum": ["itinerary", "compare"]},
+            "request": {"type": "string", "description": "The user's ask in one line, with any constraints "
+                                                         "(days, region, budget, likes)."},
+            "filler": {"type": "string", "description": "A short line shown and spoken while the planner works, "
+                                                        "in the user's language, e.g. 'Ek minute, plan bana raha hoon'."},
+            "route_a": {"type": ["array", "null"], "items": {"type": "string"},
+                        "description": "compare: first route as place names in travel order, or null = the current "
+                                       "trip. itinerary: null."},
+            "route_b": {"type": ["array", "null"], "items": {"type": "string"},
+                        "description": "compare: second route as place names in travel order. itinerary: null."},
+        }),
+    },
+    "accept_proposal": {
+        "fn": accept_proposal,
+        "description": "Make the pending proposal the route, when the user accepts it or picks one of its options "
+                       "('haan yahi', 'pehla wala', 'option B').",
+        "parameters": _schema({
+            "option": {"type": ["string", "null"], "enum": ["A", "B", None],
+                       "description": "'A' or 'B' for a comparison; null for an itinerary."},
+        }),
+    },
+    "dismiss_proposal": {
+        "fn": dismiss_proposal,
+        "description": "Take the pending proposal off the screen when the user turns it down ('nahi, rehne do', "
+                       "'no thanks', 'current wala hi theek hai'). The route stays as it is. Ends your turn.",
+        "parameters": _schema({
+            "reply": {"type": "string", "description": "One short sentence in the user's language."},
+        }),
+    },
     "reply": {
         "fn": reply,
         "description": "Send a plain message and change nothing (refusals, errors to explain, answers). Ends the turn.",
@@ -659,7 +1021,30 @@ def _step_label(name: str, args) -> str:
     return {"resolve_place": f"Looking up {place}" if place else "Looking up a place",
             "suggest_enroute_places": "Finding places on the way", "suggest_nearby_places": "Finding places nearby",
             "set_route": "Drawing the route", "add_stop": "Adding a stop", "remove_stop": "Removing a stop",
-            "undo": "Going back", "ask_user": "Asking you", "reply": "Writing a reply"}.get(name, name)
+            "undo": "Going back", "ask_user": "Asking you", "reply": "Writing a reply",
+            "plan_with_frontier": "Asking the planner", "accept_proposal": "Using the plan",
+            "dismiss_proposal": "Dropping the plan"}.get(name, name)
+
+
+def _short(text: str, n: int) -> str:
+    text = " ".join(str(text).split())
+    return text if len(text) <= n else text[:n - 1] + "…"
+
+
+def _result_line(name: str, result: dict) -> str:
+    """One line about a tool's result for the activity timeline. Built in code, never by the model."""
+    if not result.get("ok"):
+        return _short(result.get("error") or "failed", 90)
+    if name == "resolve_place":
+        return _short(", ".join(f"{r.get('query')}: {r.get('status')}" for r in result.get("results", [])), 90)
+    if result.get("line"):
+        return _short(result["line"], 90)
+    if "reply" in result:
+        return _short(result["reply"], 90)
+    for key in ("places", "suggestions", "cards"):
+        if isinstance(result.get(key), list):
+            return f"{len(result[key])} places"
+    return "ok"
 
 
 def run_tool(session_id: str, name: str, raw_args: str) -> dict:
@@ -669,7 +1054,8 @@ def run_tool(session_id: str, name: str, raw_args: str) -> dict:
     except json.JSONDecodeError as e:
         args, problem = None, f"arguments are not valid JSON ({e})"
     with span("tool", name, input=raw_args) as sp, \
-            state.progress_step(session_id, _step_label(name, args)) as ui:
+            state.progress_step(session_id, _step_label(name, args), kind="tool", name=name,
+                                detail=_short(raw_args or "", 110)) as ui:
         tool = TOOLS.get(name)
         if tool is None:
             result = {"ok": False, "error": f"unknown tool '{name}'", "hint": f"Use one of {sorted(TOOLS)}."}
@@ -683,6 +1069,7 @@ def run_tool(session_id: str, name: str, raw_args: str) -> dict:
                           "hint": "Tell the user something went wrong and to try again."}
                 sp["error"] = repr(e)
         sp["output"] = result
+        ui["result"] = _result_line(name, result)
         if not result.get("ok"):
             ui["status"] = "error"
         elif name == "resolve_place":

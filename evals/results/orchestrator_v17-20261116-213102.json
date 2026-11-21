@@ -1,0 +1,515 @@
+{
+ "summary": {
+  "prompt_version": "orchestrator_v17",
+  "model": "gpt-5.4-nano",
+  "turns_passed": "8/8",
+  "sessions_passed": "5/5",
+  "by_length": {
+   "short": "4/4",
+   "medium": "3/3",
+   "long": "1/1"
+  },
+  "by_tag": {
+   "create": "6/6",
+   "english": "3/3",
+   "hinglish": "5/5",
+   "insert": "2/2",
+   "long": "1/1",
+   "remove": "3/3",
+   "round-trip": "2/2",
+   "undo": "3/3"
+  },
+  "per_turn": {
+   "steps": 1.75,
+   "tokens": 4355.75,
+   "seconds": 4.71
+  },
+  "tokens": {
+   "input": 34048,
+   "cached": 18432,
+   "output": 798
+  },
+  "cost_usd": 0.0045,
+  "cost_per_turn_usd": 0.00056,
+  "projected_all_turns_usd": 0.045,
+  "errors": []
+ },
+ "turns": [
+  {
+   "session": "s01",
+   "turn": 1,
+   "say": "Delhi se Agra",
+   "length": "short",
+   "tags": [
+    "create",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "delhi",
+     "agra"
+    ]
+   },
+   "reply": "Delhi → Agra road trip set kar diya (driving).",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "delhi",
+     "agra"
+    ],
+    "fly_from": [],
+    "asks": false,
+    "suggests": false,
+    "food": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 5.9,
+   "steps": 2,
+   "tokens": 4871,
+   "usage": {
+    "input": 4780,
+    "cached": 1536,
+    "output": 91
+   },
+   "cost_usd": 0.000793,
+   "calls": [
+    "resolve_place({\"names\":[\"Delhi\",\"Agra\"],\"state_hints\":[\"Delhi\",\"Uttar Pradesh\"]})",
+    "set_stops({\"place_ids\":[\"delhi\",\"agra\"],\"reply\":\"Delhi → Agra road trip set kar diya (driving).\"})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_stops",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "ee56335f0364"
+  },
+  {
+   "session": "s02",
+   "turn": 1,
+   "say": "Lucknow se Jaipur jaana hai, beech mein Agra",
+   "length": "medium",
+   "tags": [
+    "create",
+    "remove",
+    "undo",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "lucknow",
+     "agra",
+     "jaipur"
+    ]
+   },
+   "reply": "Lucknow se Jaipur via Agra set kar diya.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "lucknow",
+     "agra",
+     "jaipur"
+    ],
+    "fly_from": [],
+    "asks": false,
+    "suggests": false,
+    "food": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 7.02,
+   "steps": 2,
+   "tokens": 4935,
+   "usage": {
+    "input": 4841,
+    "cached": 1536,
+    "output": 94
+   },
+   "cost_usd": 0.000809,
+   "calls": [
+    "resolve_place({\"names\":[\"Lucknow\",\"Jaipur\",\"Agra\"],\"state_hints\":[\"\",\"\",\"\"]})",
+    "set_stops({\"place_ids\":[\"lucknow\",\"agra\",\"jaipur\"],\"reply\":\"Lucknow se Jaipur via Agra set kar diya.\"})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_stops",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "783077b7da20"
+  },
+  {
+   "session": "s02",
+   "turn": 2,
+   "say": "Agra hata do",
+   "length": "short",
+   "tags": [
+    "create",
+    "remove",
+    "undo",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "lucknow",
+     "jaipur"
+    ]
+   },
+   "reply": "Agra hata diya—ab Lucknow se direct Jaipur.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "lucknow",
+     "jaipur"
+    ],
+    "fly_from": [],
+    "asks": false,
+    "suggests": false,
+    "food": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 2.29,
+   "steps": 1,
+   "tokens": 2481,
+   "usage": {
+    "input": 2412,
+    "cached": 1536,
+    "output": 69
+   },
+   "cost_usd": 0.000292,
+   "calls": [
+    "set_stops({\"place_ids\":[\"lucknow\",\"jaipur\"],\"reply\":\"Agra hata diya—ab Lucknow se direct Jaipur.\"})"
+   ],
+   "tool_results": [
+    {
+     "tool": "set_stops",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "e733e7786a27"
+  },
+  {
+   "session": "s02",
+   "turn": 3,
+   "say": "wapas pehle jaisa kar do",
+   "length": "short",
+   "tags": [
+    "create",
+    "remove",
+    "undo",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "lucknow",
+     "agra",
+     "jaipur"
+    ]
+   },
+   "reply": "Ok—wapas pehle jaisa: Lucknow se Jaipur, beech mein Agra.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "lucknow",
+     "agra",
+     "jaipur"
+    ],
+    "fly_from": [],
+    "asks": false,
+    "suggests": false,
+    "food": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 2.07,
+   "steps": 1,
+   "tokens": 2475,
+   "usage": {
+    "input": 2426,
+    "cached": 1536,
+    "output": 49
+   },
+   "cost_usd": 0.00027,
+   "calls": [
+    "undo({\"reply\":\"Ok—wapas pehle jaisa: Lucknow se Jaipur, beech mein Agra.\"})"
+   ],
+   "tool_results": [
+    {
+     "tool": "undo",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "60f4382ccd7e"
+  },
+  {
+   "session": "s03",
+   "turn": 1,
+   "say": "Plan a drive from Mumbai to Goa",
+   "length": "short",
+   "tags": [
+    "create",
+    "insert",
+    "english"
+   ],
+   "expect": {
+    "first": "mumbai",
+    "last": "panaji"
+   },
+   "reply": "Mumbai → Panaji (Goa) road trip plan set.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "mumbai",
+     "panaji"
+    ],
+    "fly_from": [],
+    "asks": false,
+    "suggests": false,
+    "food": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 3.88,
+   "steps": 2,
+   "tokens": 4876,
+   "usage": {
+    "input": 4786,
+    "cached": 3072,
+    "output": 90
+   },
+   "cost_usd": 0.000517,
+   "calls": [
+    "resolve_place({\"names\":[\"Mumbai\",\"Goa\"],\"state_hints\":[\"\",\"Goa\"]})",
+    "set_stops({\"place_ids\":[\"mumbai\",\"panaji\"],\"reply\":\"Mumbai → Panaji (Goa) road trip plan set.\"})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_stops",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "a639c2478d98"
+  },
+  {
+   "session": "s03",
+   "turn": 2,
+   "say": "Add Pune right after Mumbai, we have friends to meet there",
+   "length": "medium",
+   "tags": [
+    "create",
+    "insert",
+    "english"
+   ],
+   "expect": {
+    "order": [
+     "mumbai",
+     "pune",
+     "panaji"
+    ],
+    "first": "mumbai"
+   },
+   "reply": "Done—Mumbai → Pune → Panaji (Goa). Added Pune (Maharashtra) right after Mumbai.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "mumbai",
+     "pune",
+     "panaji"
+    ],
+    "fly_from": [],
+    "asks": false,
+    "suggests": false,
+    "food": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 7.36,
+   "steps": 2,
+   "tokens": 5014,
+   "usage": {
+    "input": 4910,
+    "cached": 3072,
+    "output": 104
+   },
+   "cost_usd": 0.000559,
+   "calls": [
+    "resolve_place({\"names\":[\"Pune\"],\"state_hints\":[\"Maharashtra\"]})",
+    "set_stops({\"place_ids\":[\"mumbai\",\"pune\",\"panaji\"],\"reply\":\"Done—Mumbai → Pune → Panaji (Goa). Added Pune (Maharashtra) right after Mumbai.\"})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_stops",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "b8ddc8c30268"
+  },
+  {
+   "session": "s04",
+   "turn": 1,
+   "say": "We are a family of four starting from Bengaluru next week. We want to see the Mysuru palace, then go up to Ooty for two nights, and finally come back home to Bengaluru at the end of the trip.",
+   "length": "long",
+   "tags": [
+    "round-trip",
+    "long",
+    "english"
+   ],
+   "expect": {
+    "round_trip": true,
+    "first": "bengaluru",
+    "order": [
+     "bengaluru",
+     "mysuru",
+     "ooty",
+     "bengaluru"
+    ]
+   },
+   "reply": "Done—I've set the route: Bengaluru -> Mysuru (for the palace) -> Ooty (2 nights) -> Bengaluru.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "bengaluru",
+     "mysuru",
+     "ooty",
+     "bengaluru"
+    ],
+    "fly_from": [],
+    "asks": false,
+    "suggests": false,
+    "food": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 4.58,
+   "steps": 2,
+   "tokens": 5227,
+   "usage": {
+    "input": 5042,
+    "cached": 3072,
+    "output": 185
+   },
+   "cost_usd": 0.000687,
+   "calls": [
+    "resolve_place({\"names\":[\"Bengaluru\",\"Mysuru Palace\",\"Mysuru\",\"Ooty\",\"Udhagamandalam\"],\"state_hints\":[\"Karnataka\",\"\",\"Karnataka\",\"Tamil Nadu\",\"Tamil Nadu\"]})",
+    "set_stops({\"place_ids\":[\"bengaluru\",\"mysuru\",\"ooty\",\"bengaluru\"],\"reply\":\"Done—I've set the route: Bengaluru -> Mysuru (for the palace) -> Ooty (2 nights) -> Bengaluru.\"})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_stops",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "6434674de934"
+  },
+  {
+   "session": "s05",
+   "turn": 1,
+   "say": "Delhi se Jaipur aur Udaipur, phir wapas Delhi",
+   "length": "medium",
+   "tags": [
+    "round-trip",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "delhi",
+     "jaipur",
+     "udaipur",
+     "delhi"
+    ]
+   },
+   "reply": "Delhi -> Jaipur -> Udaipur -> Delhi trip set kar diya (added wapas Delhi).",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "delhi",
+     "jaipur",
+     "udaipur",
+     "delhi"
+    ],
+    "fly_from": [],
+    "asks": false,
+    "suggests": false,
+    "food": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 4.6,
+   "steps": 2,
+   "tokens": 4967,
+   "usage": {
+    "input": 4851,
+    "cached": 3072,
+    "output": 116
+   },
+   "cost_usd": 0.000562,
+   "calls": [
+    "resolve_place({\"names\":[\"Delhi\",\"Jaipur\",\"Udaipur\"],\"state_hints\":[\"\",\"\",\"\"]})",
+    "set_stops({\"place_ids\":[\"delhi\",\"jaipur\",\"udaipur\",\"delhi\"],\"reply\":\"Delhi -> Jaipur -> Udaipur -> Delhi trip set kar diya (added wapas Delhi).\"})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_stops",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "f26306edec4c"
+  }
+ ]
+}

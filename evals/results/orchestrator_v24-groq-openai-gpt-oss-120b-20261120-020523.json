@@ -1,0 +1,1026 @@
+{
+ "summary": {
+  "prompt_version": "orchestrator_v24",
+  "model": "groq/openai/gpt-oss-120b",
+  "turns_passed": "16/17",
+  "sessions_passed": "9/10",
+  "by_length": {
+   "short": "10/10",
+   "medium": "5/6",
+   "long": "1/1"
+  },
+  "by_tag": {
+   "create": "6/6",
+   "english": "7/7",
+   "flight-request": "5/5",
+   "follow-up": "2/2",
+   "from-trace:e3d92121f18b": "2/2",
+   "guardrail": "1/1",
+   "hinglish": "8/9",
+   "insert": "2/2",
+   "long": "1/1",
+   "outside-india": "1/1",
+   "remove": "3/3",
+   "round-trip": "3/4",
+   "short": "1/1",
+   "typo": "1/1",
+   "undo": "3/3"
+  },
+  "per_turn": {
+   "steps": 2.35,
+   "tokens": 6918.24,
+   "seconds": 2.15
+  },
+  "seconds_p50_p95_p99": [
+   0.98,
+   10.1,
+   10.1
+  ],
+  "seconds_max": 10.1,
+  "tokens": {
+   "input": 115809,
+   "cached": 66816,
+   "output": 1801
+  },
+  "cost_usd": 0.0134,
+  "cost_per_turn_usd": 0.00079,
+  "projected_all_turns_usd": 0.066,
+  "errors": []
+ },
+ "turns": [
+  {
+   "session": "s01",
+   "turn": 1,
+   "say": "Delhi se Agra",
+   "length": "short",
+   "tags": [
+    "create",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "delhi",
+     "agra"
+    ]
+   },
+   "reply": "Delhi → Agra",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "delhi",
+     "agra"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 6.77,
+   "steps": 3,
+   "tokens": 8774,
+   "usage": {
+    "input": 8607,
+    "cached": 0,
+    "output": 167
+   },
+   "cost_usd": 0.001391,
+   "calls": [
+    "resolve_place({\"queries\":[\"Delhi\",\"Agra\"]})",
+    "set_route({\"stops\":[\"delhi\",\"agra\"]})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_route",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "659158e0eec0"
+  },
+  {
+   "session": "s02",
+   "turn": 1,
+   "say": "Lucknow se Jaipur jaana hai, beech mein Agra",
+   "length": "medium",
+   "tags": [
+    "create",
+    "remove",
+    "undo",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "lucknow",
+     "agra",
+     "jaipur"
+    ]
+   },
+   "reply": "Lucknow → Agra → Jaipur",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "lucknow",
+     "agra",
+     "jaipur"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 1.1,
+   "steps": 3,
+   "tokens": 8837,
+   "usage": {
+    "input": 8722,
+    "cached": 2560,
+    "output": 115
+   },
+   "cost_usd": 0.001185,
+   "calls": [
+    "resolve_place({\"queries\":[\"Lucknow\",\"Jaipur\",\"Agra\"]})",
+    "set_route({\"stops\":[\"lucknow\",\"agra\",\"jaipur\"]})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_route",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "f0df08d830db"
+  },
+  {
+   "session": "s02",
+   "turn": 2,
+   "say": "Agra hata do",
+   "length": "short",
+   "tags": [
+    "create",
+    "remove",
+    "undo",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "lucknow",
+     "jaipur"
+    ]
+   },
+   "reply": "Removed Agra.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "lucknow",
+     "jaipur"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 0.98,
+   "steps": 2,
+   "tokens": 5813,
+   "usage": {
+    "input": 5763,
+    "cached": 2560,
+    "output": 50
+   },
+   "cost_usd": 0.000702,
+   "calls": [
+    "remove_stop({\"place_id\":\"agra\"})"
+   ],
+   "tool_results": [
+    {
+     "tool": "remove_stop",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "a2b2c772ef3e"
+  },
+  {
+   "session": "s02",
+   "turn": 3,
+   "say": "wapas pehle jaisa kar do",
+   "length": "short",
+   "tags": [
+    "create",
+    "remove",
+    "undo",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "lucknow",
+     "agra",
+     "jaipur"
+    ]
+   },
+   "reply": "Undone.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "lucknow",
+     "agra",
+     "jaipur"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 0.68,
+   "steps": 2,
+   "tokens": 5827,
+   "usage": {
+    "input": 5779,
+    "cached": 2560,
+    "output": 48
+   },
+   "cost_usd": 0.000704,
+   "calls": [
+    "undo({\"count\":1})"
+   ],
+   "tool_results": [
+    {
+     "tool": "undo",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "15b5d6ae9e52"
+  },
+  {
+   "session": "s03",
+   "turn": 1,
+   "say": "Plan a drive from Mumbai to Goa",
+   "length": "short",
+   "tags": [
+    "create",
+    "insert",
+    "english"
+   ],
+   "expect": {
+    "first": "mumbai",
+    "last": "panaji"
+   },
+   "reply": "Mumbai → Panaji",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "mumbai",
+     "panaji"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 1.38,
+   "steps": 3,
+   "tokens": 8713,
+   "usage": {
+    "input": 8617,
+    "cached": 7680,
+    "output": 96
+   },
+   "cost_usd": 0.000774,
+   "calls": [
+    "resolve_place({\"queries\":[\"Mumbai\",\"Goa\"]})",
+    "set_route({\"stops\":[\"mumbai\",\"panaji\"]})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_route",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "84d2d28468a5"
+  },
+  {
+   "session": "s03",
+   "turn": 2,
+   "say": "Add Pune right after Mumbai, we have friends to meet there",
+   "length": "medium",
+   "tags": [
+    "create",
+    "insert",
+    "english"
+   ],
+   "expect": {
+    "order": [
+     "mumbai",
+     "pune",
+     "panaji"
+    ],
+    "first": "mumbai"
+   },
+   "reply": "Added Pune after Mumbai.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "mumbai",
+     "pune",
+     "panaji"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 7.56,
+   "steps": 3,
+   "tokens": 8829,
+   "usage": {
+    "input": 8730,
+    "cached": 0,
+    "output": 99
+   },
+   "cost_usd": 0.001369,
+   "calls": [
+    "resolve_place({\"queries\":[\"Pune\"]})",
+    "add_stop({\"after\":\"mumbai\",\"before\":null,\"place_id\":\"pune\",\"position\":null})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "add_stop",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "510f33cc46f6"
+  },
+  {
+   "session": "s04",
+   "turn": 1,
+   "say": "We are a family of four starting from Bengaluru next week. We want to see the Mysuru palace, then go up to Ooty for two nights, and finally come back home to Bengaluru at the end of the trip.",
+   "length": "long",
+   "tags": [
+    "round-trip",
+    "long",
+    "english"
+   ],
+   "expect": {
+    "round_trip": true,
+    "first": "bengaluru",
+    "order": [
+     "bengaluru",
+     "mysuru",
+     "ooty",
+     "bengaluru"
+    ]
+   },
+   "reply": "Bengaluru → Mysuru → Ooty → Bengaluru",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "bengaluru",
+     "mysuru",
+     "ooty",
+     "bengaluru"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 10.1,
+   "steps": 3,
+   "tokens": 9050,
+   "usage": {
+    "input": 8865,
+    "cached": 2560,
+    "output": 185
+   },
+   "cost_usd": 0.001249,
+   "calls": [
+    "resolve_place({\"queries\":[\"Bengaluru\",\"Mysuru\",\"Ooty\"]})",
+    "set_route({\"stops\":[\"bengaluru\",\"mysuru\",\"ooty\",\"bengaluru\"]})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_route",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "eaf7af10bb76"
+  },
+  {
+   "session": "s05",
+   "turn": 1,
+   "say": "Delhi se Jaipur aur Udaipur, phir wapas Delhi",
+   "length": "medium",
+   "tags": [
+    "round-trip",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "delhi",
+     "jaipur",
+     "udaipur",
+     "delhi"
+    ]
+   },
+   "reply": "Kaun sa Udaipur chahte hain?",
+   "pass": false,
+   "fails": [
+    "stops: want ['delhi', 'jaipur', 'udaipur', 'delhi'], got stops=[] asks=True"
+   ],
+   "after": {
+    "stops": [],
+    "asks": true
+   },
+   "question": {
+    "text": "Kaun sa Udaipur chahte hain?",
+    "options": [
+     "Udaipur, Rajasthan",
+     "Udaipur, Tripura",
+     "Udaipur, Himachal Pradesh"
+    ],
+    "spots": [
+     {
+      "name": "Udaipur",
+      "lat": 24.5858,
+      "lon": 73.7135
+     },
+     {
+      "name": "Udaipur",
+      "lat": 23.5333,
+      "lon": 91.4833
+     },
+     {
+      "name": "Udaipur",
+      "lat": 32.7269,
+      "lon": 76.6623
+     }
+    ]
+   },
+   "suggestions": [],
+   "seconds": 1.03,
+   "steps": 2,
+   "tokens": 5911,
+   "usage": {
+    "input": 5766,
+    "cached": 2560,
+    "output": 145
+   },
+   "cost_usd": 0.00076,
+   "calls": [
+    "resolve_place({\"queries\":[\"Delhi\",\"Jaipur\",\"Udaipur\"]})",
+    "ask_user({\"options\":[\"Udaipur, Rajasthan\",\"Udaipur, Tripura\",\"Udaipur, Himachal Pradesh\"],\"question\":\"Kaun sa Udaipur chahte hain?\"})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "ask_user",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "28c1b32ce100"
+  },
+  {
+   "session": "s06",
+   "turn": 1,
+   "say": "Suggest a trip from Jammu, Goa and Kolkata.",
+   "length": "medium",
+   "tags": [
+    "round-trip",
+    "follow-up",
+    "english",
+    "from-trace:e3d92121f18b"
+   ],
+   "expect": {
+    "order": [
+     "jammu",
+     "panaji",
+     "kolkata"
+    ],
+    "first": "jammu"
+   },
+   "reply": "Jammu → Panaji → Kolkata",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "jammu",
+     "panaji",
+     "kolkata"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [
+    "Ludhiana",
+    "Delhi",
+    "Indore",
+    "Ahmednagar",
+    "Sangli",
+    "Nagpur",
+    "Raipur",
+    "Kharagpur"
+   ],
+   "seconds": 1.6,
+   "steps": 4,
+   "tokens": 12053,
+   "usage": {
+    "input": 11818,
+    "cached": 10496,
+    "output": 235
+   },
+   "cost_usd": 0.001126,
+   "calls": [
+    "resolve_place({\"queries\":[\"Jammu\",\"Goa\",\"Kolkata\"]})",
+    "suggest_enroute_places({\"from_id\":null,\"range_km\":30,\"to_id\":null})",
+    "set_route({\"stops\":[\"jammu\",\"panaji\",\"kolkata\"]})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "suggest_enroute_places",
+     "ok": false,
+     "error": "there is no route yet"
+    },
+    {
+     "tool": "set_route",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "14920d8732af"
+  },
+  {
+   "session": "s06",
+   "turn": 2,
+   "say": "After Kolkata we will drive all the way back home to Jammu, so please make it one full loop that ends where we started.",
+   "length": "medium",
+   "tags": [
+    "round-trip",
+    "follow-up",
+    "english",
+    "from-trace:e3d92121f18b"
+   ],
+   "expect": {
+    "round_trip": true,
+    "first": "jammu",
+    "order": [
+     "jammu",
+     "panaji",
+     "kolkata",
+     "jammu"
+    ]
+   },
+   "reply": "Added Jammu after Kolkata.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "jammu",
+     "panaji",
+     "kolkata",
+     "jammu"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [
+    "Dhanbad",
+    "Varanasi",
+    "Meerut",
+    "Ludhiana"
+   ],
+   "seconds": 0.92,
+   "steps": 2,
+   "tokens": 5955,
+   "usage": {
+    "input": 5831,
+    "cached": 5120,
+    "output": 124
+   },
+   "cost_usd": 0.000565,
+   "calls": [
+    "add_stop({\"after\":\"kolkata\",\"before\":null,\"place_id\":\"jammu\",\"position\":null})"
+   ],
+   "tool_results": [
+    {
+     "tool": "add_stop",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "c2972df337fd"
+  },
+  {
+   "session": "s07",
+   "turn": 1,
+   "say": "Delhi to Chennai",
+   "length": "short",
+   "tags": [
+    "flight-request",
+    "english"
+   ],
+   "expect": {
+    "stops": [
+     "delhi",
+     "chennai"
+    ]
+   },
+   "reply": "Delhi → Chennai",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "delhi",
+     "chennai"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [
+    "Kota",
+    "Indore",
+    "Hyderabad",
+    "Kurnool"
+   ],
+   "seconds": 1.36,
+   "steps": 3,
+   "tokens": 8744,
+   "usage": {
+    "input": 8606,
+    "cached": 5120,
+    "output": 138
+   },
+   "cost_usd": 0.00099,
+   "calls": [
+    "resolve_place({\"queries\":[\"Delhi\",\"Chennai\"]})",
+    "set_route({\"stops\":[\"delhi\",\"chennai\"]})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_route",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "4ee18eaeeb6f"
+  },
+  {
+   "session": "s07",
+   "turn": 2,
+   "say": "This is too long to drive, I'll take a flight for this one",
+   "length": "medium",
+   "tags": [
+    "flight-request",
+    "english"
+   ],
+   "expect": {
+    "stops": [
+     "delhi",
+     "chennai"
+    ]
+   },
+   "reply": "The route stays the same; you can book a flight for the Delhi‑Chennai leg.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "delhi",
+     "chennai"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 0.26,
+   "steps": 1,
+   "tokens": 2887,
+   "usage": {
+    "input": 2836,
+    "cached": 2560,
+    "output": 51
+   },
+   "cost_usd": 0.000264,
+   "calls": [],
+   "tool_results": [],
+   "error": null,
+   "trace_id": "8b89fc520f4e"
+  },
+  {
+   "session": "s08",
+   "turn": 1,
+   "say": "Mumbai se Kolkata, beech mein Nagpur",
+   "length": "short",
+   "tags": [
+    "flight-request",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "mumbai",
+     "nagpur",
+     "kolkata"
+    ]
+   },
+   "reply": "Mumbai → Nagpur → Kolkata",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "mumbai",
+     "nagpur",
+     "kolkata"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [
+    "Nashik",
+    "Aurangabad",
+    "Wardha",
+    "Bhilai",
+    "Raipur",
+    "Sambalpur",
+    "Kharagpur"
+   ],
+   "seconds": 0.79,
+   "steps": 3,
+   "tokens": 8812,
+   "usage": {
+    "input": 8713,
+    "cached": 7680,
+    "output": 99
+   },
+   "cost_usd": 0.00079,
+   "calls": [
+    "resolve_place({\"queries\":[\"Mumbai\",\"Kolkata\",\"Nagpur\"]})",
+    "set_route({\"stops\":[\"mumbai\",\"nagpur\",\"kolkata\"]})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_route",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "d4a9d0ef0d06"
+  },
+  {
+   "session": "s08",
+   "turn": 2,
+   "say": "Nagpur se Kolkata flight lenge",
+   "length": "short",
+   "tags": [
+    "flight-request",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "mumbai",
+     "nagpur",
+     "kolkata"
+    ]
+   },
+   "reply": "Okay, noted! 🚀",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "mumbai",
+     "nagpur",
+     "kolkata"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 0.73,
+   "steps": 1,
+   "tokens": 2892,
+   "usage": {
+    "input": 2852,
+    "cached": 2560,
+    "output": 40
+   },
+   "cost_usd": 0.00026,
+   "calls": [],
+   "tool_results": [],
+   "error": null,
+   "trace_id": "88eb13165f2e"
+  },
+  {
+   "session": "s08",
+   "turn": 3,
+   "say": "nahi, sab drive karenge",
+   "length": "short",
+   "tags": [
+    "flight-request",
+    "hinglish"
+   ],
+   "expect": {
+    "stops": [
+     "mumbai",
+     "nagpur",
+     "kolkata"
+    ]
+   },
+   "reply": "Sab drive hi karenge, theek hai!",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "mumbai",
+     "nagpur",
+     "kolkata"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 0.35,
+   "steps": 1,
+   "tokens": 2932,
+   "usage": {
+    "input": 2875,
+    "cached": 2560,
+    "output": 57
+   },
+   "cost_usd": 0.000273,
+   "calls": [],
+   "tool_results": [],
+   "error": null,
+   "trace_id": "b52d918d2de5"
+  },
+  {
+   "session": "s09",
+   "turn": 1,
+   "say": "Delhi se Kathmandu jaana hai",
+   "length": "short",
+   "tags": [
+    "guardrail",
+    "outside-india",
+    "hinglish"
+   ],
+   "expect": {
+    "not_has": [
+     "kathmandu"
+    ],
+    "any_of": [
+     {
+      "unchanged": true
+     },
+     {
+      "asks": true
+     },
+     {
+      "max_len": 2
+     }
+    ]
+   },
+   "reply": "Kathmandu India ke bahar hai, isliye hum is route ko nahi bana sakte.",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 0.31,
+   "steps": 1,
+   "tokens": 2842,
+   "usage": {
+    "input": 2782,
+    "cached": 2560,
+    "output": 60
+   },
+   "cost_usd": 0.000261,
+   "calls": [
+    "reply({\"message\":\"Kathmandu India ke bahar hai, isliye hum is route ko nahi bana sakte.\"})"
+   ],
+   "tool_results": [
+    {
+     "tool": "reply",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "48661483575e"
+  },
+  {
+   "session": "s10",
+   "turn": 1,
+   "say": "Banglore se Mysore",
+   "length": "short",
+   "tags": [
+    "typo",
+    "short"
+   ],
+   "expect": {
+    "stops": [
+     "bengaluru",
+     "mysuru"
+    ]
+   },
+   "reply": "Bengaluru → Mysuru",
+   "pass": true,
+   "fails": [],
+   "after": {
+    "stops": [
+     "bengaluru",
+     "mysuru"
+    ],
+    "asks": false
+   },
+   "question": null,
+   "suggestions": [],
+   "seconds": 0.64,
+   "steps": 3,
+   "tokens": 8739,
+   "usage": {
+    "input": 8647,
+    "cached": 7680,
+    "output": 92
+   },
+   "cost_usd": 0.000776,
+   "calls": [
+    "resolve_place({\"queries\":[\"Banglore\",\"Mysore\"]})",
+    "set_route({\"stops\":[\"bengaluru\",\"mysuru\"]})"
+   ],
+   "tool_results": [
+    {
+     "tool": "resolve_place",
+     "ok": true,
+     "error": null
+    },
+    {
+     "tool": "set_route",
+     "ok": true,
+     "error": null
+    }
+   ],
+   "error": null,
+   "trace_id": "74a35267402b"
+  }
+ ]
+}

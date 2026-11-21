@@ -13,12 +13,12 @@ import json
 import sys
 from pathlib import Path
 
-from app import guard, llm, places, state, tools
+from app import guard, llm, places, state, tools, tts
 from app.trace import span
 
 # TODO(async): no cancellation; a new message waits for the current turn to finish.
 
-PROMPT_VERSION = "orchestrator_v25"   # v25: input has detected_places (exact names found in the text, already looked up), so resolve_place is only for the rest; v24: suggest_enroute_places ids may be null (= every leg) and a stretch of the trip gets places per leg; v23: suggest tools take range_km (default 30) and show cards, ending the turn; v22: several edits per turn (the turn no longer ends after the first edit; model stops with no tool call); v21: suggest_enroute_places + suggest_nearby_places (data for the agent); v20: owner's prompt: small edit tools (set_route/add_stop/remove_stop/undo(count)), reply, resolve_place statuses, JSON input; no suggestions/food; v19: flights removed; v18: set_stops fly_from; v17: suggest_food; v16: set_flights; v15: round trips; v14: 1-2 long-drive stops; v13: long-drive suggestions by the app; v12: suggestions instead of questions; v11: resolve_place takes many names; v10: suggest_places; v9: ask_user `trips`; v8: suggest_stops (older versions kept for traces)
+PROMPT_VERSION = "orchestrator_v29"   # v29: dismiss_proposal (turn a proposal down by voice/text); v28: plan_with_frontier also for "A to B plus the best places"; named places are kept as anchors (refused only above 3 named places); v27: user_input.spoken_language on voice turns (detected by Sarvam STT): replies and the planner filler in that language; v26: plan_with_frontier (itinerary / compare proposals from llm.FRONTIER) + accept_proposal, input has state.pending_proposal; v25: input has detected_places (exact names found in the text, already looked up), so resolve_place is only for the rest; v24: suggest_enroute_places ids may be null (= every leg) and a stretch of the trip gets places per leg; v23: suggest tools take range_km (default 30) and show cards, ending the turn; v22: several edits per turn (the turn no longer ends after the first edit; model stops with no tool call); v21: suggest_enroute_places + suggest_nearby_places (data for the agent); v20: owner's prompt: small edit tools (set_route/add_stop/remove_stop/undo(count)), reply, resolve_place statuses, JSON input; no suggestions/food; v19: flights removed; v18: set_stops fly_from; v17: suggest_food; v16: set_flights; v15: round trips; v14: 1-2 long-drive stops; v13: long-drive suggestions by the app; v12: suggestions instead of questions; v11: resolve_place takes many names; v10: suggest_places; v9: ask_user `trips`; v8: suggest_stops (older versions kept for traces)
 SYSTEM_PROMPT = (Path(__file__).parent / "prompts" / f"{PROMPT_VERSION}.md").read_text()
 
 # Limits live in code, not in the prompt.
@@ -58,8 +58,11 @@ def _context_items(session_id: str, text: str, kind: str) -> list[dict]:
         items += [{"role": "user", "content": user_text}, {"role": "assistant", "content": reply}]
     turn = {"state": {"stops": [{"id": x["id"], "name": x["name"]} for x in state.trip(session_id)["stops"]],
                       "pending_question": sess.pending_question,
-                      "last_mentioned": sess.last_mentioned},
+                      "last_mentioned": sess.last_mentioned,
+                      "pending_proposal": tools.pending_proposal(session_id)},
             "user_input": {"type": kind, "value": text}}
+    if sess.speak_in:                     # a voice message: answer in the language the user spoke
+        turn["user_input"]["spoken_language"] = tts.write_as(sess.speak_in)
     if kind == "text" and (found := detected_places(session_id, text)):   # a click already carries its ids
         turn["detected_places"] = found
     items.append({"role": "user", "content": json.dumps(turn, ensure_ascii=False)})
@@ -111,7 +114,8 @@ def run_turn(session_id: str, text: str, kind: str = "text") -> str:
     m = llm.MODELS[model]
     with span("agent", "turn", input={"text": text, "kind": kind, "prompt_version": PROMPT_VERSION,
                                       "model": model, "session": session_id}) as root:
-        sess.current_text = text                          # which places the user named (set_route guardrail)
+        sess.current_text = text                          # which places the user named (plan_with_frontier's check)
+        sess.frontier_used = False                        # one frontier call per turn
         sess.turn_wrote = False                           # the first edit of this turn saves the undo step
         before = state.stop_ids(session_id)               # for the "heard" highlights (removed places too)
         mentioned_before = sess.last_mentioned
@@ -126,9 +130,10 @@ def run_turn(session_id: str, text: str, kind: str = "text") -> str:
                     root["error"] = "spend cap"
                     break
                 label = "Understanding your message" if step == 1 else "Planning the route"
-                with span("llm", f"step{step}", input=items[-1]) as sp, state.progress_step(session_id, label):
+                with span("llm", f"step{step}", input=items[-1]) as sp, state.progress_step(session_id, label, kind="llm", name=model) as ui:
                     r = llm.step(model, SYSTEM_PROMPT, items, tools.openai_tools(), m["effort"], m["max_out"])
                     calls = r.calls
+                    ui["result"] = (", ".join(c.name for c in calls) or "answers") + f" · {r.usage['total']} tokens"
                     tokens += r.usage["total"]
                     guard.charge(session_id, guard.llm_cost(r.usage, model))
                     sp["output"] = {"text": r.text, "model": model,

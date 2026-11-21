@@ -111,7 +111,13 @@ def test_groq_uses_its_own_output_cap_name_and_extra_fields(monkeypatch):
     assert kw["reasoning_effort"] == "low" and kw["extra_body"] == {"include_reasoning": False}
 
 
-def test_openai_is_not_a_provider():
-    assert "openai" not in llm.PROVIDERS
-    assert not any(m["provider"] == "openai" for m in llm.MODELS.values())
-    assert llm.DEFAULT in llm.MODELS and llm.FRONTIER in llm.MODELS
+def test_openai_is_for_the_frontier_planner_only(monkeypatch):
+    assert llm.MODELS[llm.FRONTIER]["provider"] == "openai" and llm.MODELS[llm.FRONTIER].get("hidden")
+    assert llm.MODELS[llm.DEFAULT]["provider"] != "openai"
+    assert not any(m["provider"] == "openai" for m in llm.available())          # never in the picker
+    monkeypatch.setenv("OPENAI_API_KEY", "x")
+    assert not llm.is_available(llm.FRONTIER)                                    # so a client can't select it
+    monkeypatch.setitem(llm._clients, "openai", SimpleNamespace(responses=SimpleNamespace(
+        create=lambda **kw: pytest.fail("OpenAI was called"))))
+    with pytest.raises(ValueError):
+        llm.step(llm.FRONTIER, "SYS", [{"role": "user", "content": "hi"}], None, "low", 100)

@@ -136,7 +136,7 @@
   <tr><td>Backend</td><td>Python 3.11, FastAPI, asyncio, Pydantic, SQLite</td></tr>
   <tr><td>Frontend</td><td>Plain HTML, CSS and JavaScript with Leaflet. No framework, no build step.</td></tr>
   <tr><td>Speech</td><td>Sarvam <code>saaras:v4</code> speech-to-text, called from the backend, Roman Hinglish output</td></tr>
-  <tr><td>LLMs</td><td>Sarvam DeepSeek V4.1 Flash (default) and Gemma 4; Groq gpt-oss-120b, gpt-oss-20b and Qwen. OpenAI models were tested early on and are no longer used.</td></tr>
+  <tr><td>LLMs</td><td>Sarvam DeepSeek V4.1 Flash (default) and Gemma 4; Groq gpt-oss-120b, gpt-oss-20b and Qwen. OpenAI is used only by the frontier planner, never by the orchestrator, because it costs more.</td></tr>
   <tr><td>Data</td><td>1,063 places; road graph built from OpenStreetMap</td></tr>
 </table>
 
@@ -213,7 +213,7 @@
   <tr><th>Model</th><th class="n">Step-1 call p50</th><th class="n">Full-turn pass</th><th class="n">Turn p50</th><th class="n">USD / turn</th></tr>
   <tr><td>Sarvam Gemma 4</td><td class="n">0.76 s</td><td class="n">99%</td><td class="n">1.0 s</td><td class="n">0.00115</td></tr>
   <tr class="win"><td>Sarvam DeepSeek V4.1 Flash</td><td class="n">0.93 s</td><td class="n">98%</td><td class="n">2.09 s</td><td class="n">0.00016</td></tr>
-  <tr><td>OpenAI gpt-5.4-nano <small>(tested, removed from the app)</small></td><td class="n">2.63 s</td><td class="n">96%</td><td class="n">4.86 s</td><td class="n">0.00046</td></tr>
+  <tr><td>OpenAI gpt-5.4-nano <small>(tested; not available to users)</small></td><td class="n">2.63 s</td><td class="n">96%</td><td class="n">4.86 s</td><td class="n">0.00046</td></tr>
   <tr><td>Groq gpt-oss-120b</td><td class="n">0.41 s</td><td class="n">51 of 55 answered</td><td class="n">1.19 s</td><td class="n">0.00079</td></tr>
 </table></div>
 <div class="note">Groq's plan caps tokens per day, so only 55, 27 and 9 of 100 turns got an answer on its three models. Their pass rates are not comparable with the others.</div>
@@ -265,7 +265,7 @@
     <div class="grp" style="--c: var(--c-suggest)"><b>Suggest</b><code>suggest_<wbr>enroute_<wbr>places</code><code>suggest_<wbr>nearby_<wbr>places</code></div>
     <div class="grp" style="--c: var(--c-talk)"><b>Talk</b><code>ask_user</code><code>reply</code></div>
     <div class="grp plan" style="--c: var(--c-plan)"><b>Plan</b><code>plan_with_frontier</code>
-      <div class="sub">↳ Frontier planner<small>Gemma 4 plans a whole trip or compares two routes, shown as a proposal card</small></div>
+      <div class="sub">↳ Frontier planner<small>GPT-5.4 plans a whole trip or compares two routes, shown as a proposal card</small></div>
       <code>accept_proposal</code><code>dismiss_proposal</code></div>
   </div>
   <div class="arrow"></div>

@@ -9,7 +9,7 @@
    "min_stops": 3, "max_stops": 8},
   {"id": "f04", "mode": "itinerary", "lang": "hinglish", "say": "Himachal ke hill stations ghoomna hai, plan bana do",
    "states": ["Himachal Pradesh", "Chandigarh", "Punjab"], "min_stops": 3, "max_stops": 7},
-  {"id": "f05", "mode": "itinerary", "lang": "english", "say": "Plan a weekend road trip from Delhi",
+  {"id": "f05", "mode": "itinerary", "lang": "english", "say": "Plan a weekend road trip, somewhere cool and not too far",
    "states": ["Delhi", "Haryana", "Uttar Pradesh", "Rajasthan", "Uttarakhand", "Himachal Pradesh", "Punjab"],
    "min_stops": 2, "max_stops": 5},
   {"id": "f06", "mode": "itinerary", "lang": "english", "say": "I want a Kerala trip with backwaters and beaches",

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Route Painter: Engineering</title>
+<meta name="description" content="A voice-driven route planner for India. An agent with tools, tracing, evals, guardrails and measured experiments.">
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1d1b; --muted: #66645e; --line: #e4e1d8; --card: #ffffff;
+    --accent: #c2410c; --accent-soft: #fff1e8; --code: #f3f1ea; --good: #166534;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151513; --fg: #ecebe6; --muted: #a19f97; --line: #2e2d29; --card: #1d1d1a;
+      --accent: #fb923c; --accent-soft: #2a1d14; --code: #22211d; --good: #4ade80;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px 80px; }
+  header { padding: 56px 0 24px; }
+  h1 { font-size: 2.2rem; line-height: 1.15; margin: 0 0 12px; }
+  h2 { font-size: 1.4rem; margin: 48px 0 12px; padding-top: 8px; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 28px 0 8px; }
+  p { margin: 0 0 12px; }
+  .lede { font-size: 1.15rem; color: var(--muted); max-width: 640px; }
+  a { color: var(--accent); }
+  nav { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 20px; font-size: .95rem; }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 24px 0; }
+  .fact { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .fact b { display: block; font-size: 1.5rem; color: var(--accent); }
+  .fact span { color: var(--muted); font-size: .9rem; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: .93rem;
+          background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; color: var(--muted); font-size: .82rem; text-transform: uppercase; letter-spacing: .03em; }
+  tr:last-child td { border-bottom: 0; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.win td { background: var(--accent-soft); }
+  .scroll { overflow-x: auto; }
+  pre { background: var(--code); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px;
+        overflow-x: auto; font-size: .85rem; line-height: 1.5; }
+  code { background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: .9em; }
+  pre code { background: none; padding: 0; }
+  ol, ul { padding-left: 22px; margin: 0 0 12px; }
+  li { margin-bottom: 6px; }
+  .note { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 10px 14px;
+          border-radius: 0 8px 8px 0; margin: 14px 0; font-size: .93rem; }
+  footer { margin-top: 56px; color: var(--muted); font-size: .88rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Voice Route Painter</h1>
+  <p class="lede">Hold Space and say "Lucknow se Jaipur jaana hai, beech mein Agra". An AI agent draws the road route on a map of India. Change it by voice or text: "Agra hata do", "wapas pehle jaisa kar do".</p>
+  <p class="lede">The focus is the agent layer: an orchestrator with a goal and tools but no scripted flow, with tracing, evals, guardrails and measured experiments.</p>
+  <nav>
+    <a href="#architecture">Architecture</a>
+    <a href="#principles">Principles</a>
+    <a href="#agent">The agent</a>
+    <a href="#routing">Routing</a>
+    <a href="#hygiene">Hygiene</a>
+    <a href="#results">Results</a>
+    <a href="#limits">Limitations</a>
+    <a href="https://github.com/pyther-hub/voice-route-painter">GitHub</a>
+  </nav>
+</header>
+
+<div class="facts">
+  <div class="fact"><b>6</b><span>LLMs, switchable in the UI</span></div>
+  <div class="fact"><b>1,063</b><span>Indian places in the list</span></div>
+  <div class="fact"><b>118k</b><span>road junctions in the routing graph</span></div>
+  <div class="fact"><b>105</b><span>tests passing</span></div>
+</div>
+
+<h2 id="stack">Stack</h2>
+<table>
+  <tr><td>Backend</td><td>Python 3.11, FastAPI, asyncio, Pydantic, SQLite</td></tr>
+  <tr><td>Frontend</td><td>Plain HTML, CSS and JavaScript with Leaflet. No framework, no build step.</td></tr>
+  <tr><td>Speech</td><td>Sarvam <code>saaras:v4</code> speech-to-text, called from the backend, Roman Hinglish output</td></tr>
+  <tr><td>LLMs</td><td>OpenAI gpt-5.4-nano; Sarvam Gemma 4 and DeepSeek V4.1 Flash; Groq gpt-oss-120b, gpt-oss-20b and Qwen</td></tr>
+  <tr><td>Data</td><td>1,063 places; road graph built from OpenStreetMap</td></tr>
+</table>
+
+<h2 id="architecture">Architecture</h2>
+<pre><code>browser (static/ + Leaflet) -- one WebSocket -- FastAPI (app/)
+  up:   {"type": "audio" | "text" | "choose" | "undo" | ...}     stt.py    Sarvam STT
+  down: full state {trip, ui} + progress events                  agent.py  orchestrator loop
+                                                                 tools.py  registry + gateway
+                                                                 state.py  one write path
+                                                                 geo.py    routing on OSM roads
+                                                                 llm.py    provider adapter
+                                                                 trace.py  spans to SQLite</code></pre>
+
+<h2 id="principles">Design principles</h2>
+<ol>
+  <li><b>Goal and tools, not a flow.</b> The prompt states the goal, facts and rules. There is no step list and no phrase-to-tool table.</li>
+  <li><b>One write path.</b> Only <code>update_state()</code> changes the trip. It bumps the version, saves undo history and pushes the full state. It ignores writes from a run that is no longer current.</li>
+  <li><b>The frontend is dumb.</b> On every message the browser calls <code>render(state)</code> and redraws. It holds no keys and calls no third-party APIs.</li>
+  <li><b>Every tool call goes through a gateway.</b> It validates arguments, enforces limits, runs the tool and records a span. Errors say what to do next.</li>
+  <li><b>Everything is a span.</b> STT, agent runs, LLM calls and tool calls record input, output, timing and status. Raw audio and keys are never stored, and tracing never breaks a turn.</li>
+  <li><b>Limits live in code.</b> Caps on steps, tokens and spend, and timeouts on every external call.</li>
+  <li><b>Add agents only for a measured reason.</b> It is still one agent with tools. A split needs a trace or eval that shows a problem it would fix.</li>
+</ol>
+
+<h2 id="agent">The agent</h2>
+<ul>
+  <li><b>Tools:</b> <code>resolve_place</code>, <code>set_route</code>, <code>add_stop</code>, <code>remove_stop</code>, <code>undo</code>, <code>ask_user</code>, <code>reply</code>, <code>suggest_enroute_places</code>, <code>suggest_nearby_places</code>.</li>
+  <li><b>Input to the model:</b> a JSON object with the current trip, any pending question, the last mentioned place, the user's input and the last 3 turns.</li>
+  <li><b>Detected places (prompt v25):</b> before the first LLM call, code finds places named exactly in the text and looks them up. The model uses those ids directly and calls <code>resolve_place</code> only for typos and colloquial names.</li>
+  <li><b>Guardrails in code:</b> at most 2 new stops the user never named; no duplicate stops except a round trip's return; a step cap; suggested places must come from the tools, not from the model's memory.</li>
+  <li><b>No LLM call needed for:</b> undo, redo, removing a stop, adding a suggested place, loading a shared link, switching model.</li>
+  <li><b>Spend caps:</b> per session and per day, in USD, checked before every LLM step and valid for every model.</li>
+</ul>
+
+<h2 id="routing">Routing and map</h2>
+<ul>
+  <li>The graph holds motorway, trunk and primary roads from OpenStreetMap: 118k nodes and 170k edges. A* finds the fastest route and reports its km.</li>
+  <li>Most legs are within 5% of Google's distance. Jaipur to Kochi is 2,363 km against about 2,400 km.</li>
+  <li>The process uses 81 MB at start, because the graph sits in packed arrays and loads in 0.1 s.</li>
+  <li>Map road layers are ranked by highway number and load by zoom level, in 2&deg; tiles, so zooming stays smooth.</li>
+</ul>
+
+<h2 id="hygiene">Product hygiene</h2>
+<p>Origin check on the WebSocket, per-IP rate limits (12 paid messages a minute), caps on sockets per IP and on open sessions, USD spend caps, a 300-character input limit, server-side keys, and a trace viewer behind a key.</p>
+
+<h2 id="results">Evaluation and results</h2>
+
+<h3>Eval set</h3>
+<p>52 sessions and about 80 turns: creates, edits, undo, round trips, typos and aliases, vague asks, guardrails and suggestions. Each turn is checked on stops, order, replies and whether the agent asked.</p>
+<div class="note">First full run (prompt v17, gpt-5.4-nano): <b>76 of 80 turns and 46 of 50 sessions passed</b>, $0.048 in total, median latency 4.2 s. The failures led to prompt v18.</div>
+
+<h3>Experiments</h3>
+<p>The dataset is 300 hand-written single-turn examples with gold edits and gold place mentions. Each arm ran once, and intervals reflect spread across examples, not run-to-run LLM noise.</p>
+
+<h3>exp-01: pre-resolving place names (DeepSeek, 300 examples)</h3>
+<div class="scroll"><table>
+  <tr><th>Arm</th><th class="n">Passed</th><th class="n">LLM steps / turn</th><th class="n">Turn p50</th><th class="n">Cost, 300 turns</th></tr>
+  <tr><td>v24: resolve every name</td><td class="n">295</td><td class="n">2.60</td><td class="n">2.11 s</td><td class="n">$0.0695</td></tr>
+  <tr class="win"><td>v25: detected places</td><td class="n">295</td><td class="n">2.03</td><td class="n">1.68 s</td><td class="n">$0.0575</td></tr>
+</table></div>
+<p>Adding fuzzy spelling matches on top changed nothing beyond noise, so exact matching stays.</p>
+
+<h3>exp-02: batching edits (DeepSeek, 300 examples)</h3>
+<div class="scroll"><table>
+  <tr><th>Arm</th><th class="n">Passed</th><th class="n">LLM steps / turn</th><th class="n">Turn p50</th><th class="n">Cost</th></tr>
+  <tr><td>A: one edit per step</td><td class="n">294</td><td class="n">2.02</td><td class="n">1.81 s</td><td class="n">$0.0574</td></tr>
+  <tr class="win"><td>B: all edits in one response</td><td class="n">294</td><td class="n">1.14</td><td class="n">1.17 s</td><td class="n">$0.0410</td></tr>
+  <tr class="win"><td>C: one atomic <code>apply_edits</code> call</td><td class="n">295</td><td class="n">1.13</td><td class="n">1.20 s</td><td class="n">$0.0427</td></tr>
+</table></div>
+<p>B and C are statistically tied. Both cut steps by about 0.9 and turn time by about 0.65 s with the same pass rate.</p>
+
+<h3>exp-03: providers (100 examples, same request to every model)</h3>
+<div class="scroll"><table>
+  <tr><th>Model</th><th class="n">Step-1 call p50</th><th class="n">Full-turn pass</th><th class="n">Turn p50</th><th class="n">USD / turn</th></tr>
+  <tr><td>Sarvam Gemma 4</td><td class="n">0.76 s</td><td class="n">99%</td><td class="n">1.0 s</td><td class="n">0.00115</td></tr>
+  <tr class="win"><td>Sarvam DeepSeek V4.1 Flash</td><td class="n">0.93 s</td><td class="n">98%</td><td class="n">2.09 s</td><td class="n">0.00016</td></tr>
+  <tr><td>OpenAI gpt-5.4-nano</td><td class="n">2.63 s</td><td class="n">96%</td><td class="n">4.86 s</td><td class="n">0.00046</td></tr>
+  <tr><td>Groq gpt-oss-120b</td><td class="n">0.41 s</td><td class="n">51 of 55 answered</td><td class="n">1.19 s</td><td class="n">0.00079</td></tr>
+</table></div>
+<div class="note">Groq's plan caps tokens per day, so only 55, 27 and 9 of 100 turns got an answer on its three models. Their pass rates are not comparable with the others.</div>
+
+<h3>Decisions from the results</h3>
+<ul>
+  <li>Keep prompt v25 (exact detected places).</li>
+  <li>Move to batched edits (B or C) next.</li>
+  <li>Default to DeepSeek for cost, with Gemma as the fast option.</li>
+</ul>
+
+<h2 id="limits">Limitations</h2>
+<ul>
+  <li>Each experiment arm ran once, so LLM run-to-run noise is not measured.</li>
+  <li>exp-01 and exp-02 used DeepSeek only.</li>
+  <li>The Groq comparison is incomplete because of its daily token cap.</li>
+  <li>No accounts or saved trips.</li>
+  <li>Not yet deployed over HTTPS.</li>
+</ul>
+
+<h2>What's next</h2>
+<p>Repeat each eval three times, export traces as OpenTelemetry, build a spoken place-name speech test, deploy, and add end-of-speech detection.</p>
+
+<footer>Source: <a href="https://github.com/pyther-hub/voice-route-painter">github.com/pyther-hub/voice-route-painter</a></footer>
+</div>
+</body>
+</html>
